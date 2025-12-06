@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Feedback Analyzer</title> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    
+    <style>
+        /* 簡單的載入動畫 */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        /* 自定義 modal 彈窗樣式 */
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content {
+            transition: transform 0.25s ease;
+        }
+        
+        /* 自定義 toast 提示訊息 */
+        .toast-notification {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* 讓 Table layout 固定，避免編輯時變形 */
+        .table-fixed-layout {
+            table-layout: fixed;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans leading-normal tracking-normal">
+
+    <div class="flex flex-col min-h-screen">
+
+        <nav class="bg-gray-800 shadow-lg sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex-shrink-0 flex items-center">
+                        <ion-icon name="analytics-outline" class="text-3xl text-blue-400"></ion-icon>
+                        <span id="nav-title" class="text-white text-xl font-bold ml-3">AI Feedback Analyzer</span>
+                    </div>
+                    
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <button id="nav-btn-submit" onclick="showPage('submit')" class="nav-link bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium">
+                                <span data-key="nav_submit">Submit Feedback</span>
+                            </button>
+                            <button id="nav-btn-history" onclick="showPage('history')" class="nav-link text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                                <span data-key="nav_history">View History</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <span class="text-sm font-medium text-gray-300 mr-2">EN</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="lang-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                        <span class="text-sm font-medium text-gray-300 ml-2">繁中</span>
+                    </div>
+                    
+                    <div class="-mr-2 flex md:hidden">
+                        <button type="button" id="mobile-menu-button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                            <span class="sr-only">Open main menu</span>
+                            <ion-icon name="menu-outline" class="block h-6 w-6"></ion-icon>
+                            <ion-icon name="close-outline" class="hidden h-6 w-6"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:hidden hidden" id="mobile-menu">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <button onclick="showPage('submit'); closeMobileMenu();" class="nav-link-mobile bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium" data-key="nav_submit">Submit Feedback</button>
+                    <button onclick="showPage('history'); closeMobileMenu();" class="nav-link-mobile text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium" data-key="nav_history">View History</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-grow">
+
+            <div id="page-submit" class="page-content max-w-3xl mx-auto p-6 md:p-10">
+                <h1 class="text-3xl font-bold mb-2" data-key="submit_title">Submit Employee Feedback</h1>
+                <p class="text-gray-400 mb-8" data-key="submit_intro">Your feedback will be analyzed by AI for sentiment and key topics. All submissions are confidential.</p>
+
+                <form id="feedback-form" class="space-y-6 bg-gray-800 p-8 rounded-lg shadow-xl">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-300" data-key="name_label">Employee Name</label>
+                        <input type="text" id="name" name="name" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Leave blank for anonymous">
+                    </div>
+                    
+                    <div>
+                        <label for="feedback" class="block text-sm font-medium text-gray-300" data-key="feedback_label">Feedback Content</label>
+                        <textarea id="feedback" name="feedback" rows="6" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your feedback here..." required></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-end">
+                        <button type="submit" id="analyze-btn" class="inline-flex justify-center items-center py-2 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 transition duration-150 ease-in-out">
+                            <svg id="loading-spinner" class="spinner -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span id="analyze-btn-text" data-key="analyze_btn">Analyze Feedback</span>
+                        </button>
+                    </div>
+
+                    <div id="analysis-result" class="hidden p-4 rounded-md"></div>
+                </form>
+            </div>
+
+            <div id="page-history" class="page-content hidden max-w-7xl mx-auto p-6 md:p-10">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold" data-key="history_title">Feedback History</h1>
+                    <button id="refresh-history-btn" class="p-2 bg-gray-700 rounded-md hover:bg-gray-600 transition">
+                        <ion-icon name="refresh-outline" class="text-2xl"></ion-icon>
+                    </button>
+                </div>
+                
+                <div class="bg-gray-800 shadow-xl rounded-lg overflow-x-auto">
+                    <div id="history-loading" class="p-8 text-center text-gray-400" data-key="loading_history">Loading history...</div>
+                    <table id="history-table" class="min-w-full divide-y divide-gray-700 hidden table-fixed-layout">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th scope="col" class="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider" data-key="th_time">Time</th>
+                                <th scope="col" class="w-1/12 px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider" data-key="th_name">Name</th>
+                                <th scope="col" class="w-2/6 px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider" data-key="th_feedback">Feedback</th>
+                                <th scope="col" class="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider" data-key="th_sentiment">Sentiment</th>
+                                <th scope="col" class="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider" data-key="th_keywords">Keywords</th>
+                                <th scope="col" class="w-1/12 px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider" data-key="th_actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="bg-gray-800 divide-y divide-gray-700">
+                            </tbody>
+                    </table>
+                    <div id="history-empty" class="p-8 text-center text-gray-400 hidden" data-key="no_history">No history found.</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="delete-modal" class="modal fixed inset-0 w-full h-full z-50 flex items-center justify-center bg-black bg-opacity-70 opacity-0 pointer-events-none">
+        <div class="modal-content transform -translate-y-10 bg-gray-800 rounded-lg shadow-xl max-w-md w-full m-4">
+            <div class="flex justify-between items-center p-5 border-b border-gray-700">
+                <h3 class="text-xl font-semibold text-white" data-key="modal_title">Confirm Deletion</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white">
+                    <ion-icon name="close-outline" class="text-2xl"></ion-icon>
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-300" data-key="modal_body">Are you sure you want to delete this feedback record? This action cannot be undone.</p>
+            </div>
+            <div class="px-6 py-4 bg-gray-700 rounded-b-lg flex justify-end space-x-4">
+                <button type="button" onclick="closeModal()" class="py-2 px-4 rounded-md text-sm font-medium text-gray-300 bg-gray-600 hover:bg-gray-500 focus:outline-none" data-key="modal_cancel">
+                    Cancel
+                </button>
+                <button type="button" id="modal-confirm-delete-btn" class="py-2 px-4 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none">
+                    <span data-key="modal_delete">Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-notification" class="toast-notification fixed bottom-5 right-5 z-50">
+        <div id="toast-content" class="flex items-center w-full max-w-xs p-4 rounded-lg shadow text-gray-300 bg-gray-700">
+            <div id="toast-icon" class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-400 bg-green-800 rounded-lg">
+                <ion-icon name="checkmark-circle-outline" class="text-xl"></ion-icon>
+            </div>
+            <div id="toast-message" class="ml-3 text-sm font-normal">Operation successful.</div>
+        </div>
+    </div>
+
+
+    <script>
+        // ===================================
+        // 語言包
+        // ===================================
+        const texts = {
+            "en": {
+                "nav_submit": "Submit Feedback",
+                "nav_history": "View History",
+                "submit_title": "Submit Employee Feedback",
+                "submit_intro": "Your feedback will be analyzed by AI for sentiment and key topics. All submissions are confidential.",
+                "name_label": "Employee Name",
+                "name_placeholder": "Leave blank for anonymous",
+                "feedback_label": "Feedback Content",
+                "feedback_placeholder": "Enter your feedback here...",
+                "analyze_btn": "Analyze Feedback",
+                "analyzing_btn": "Analyzing...",
+                "history_title": "Feedback History",
+                "th_time": "Time",
+                "th_name": "Name",
+                "th_feedback": "Feedback",
+                "th_sentiment": "Sentiment",
+                "th_keywords": "Keywords",
+                "th_actions": "Actions",
+                "loading_history": "Loading history...",
+                "no_history": "No history found.",
+                "edit": "Edit",
+                "delete": "Delete",
+                "save": "Save",
+                "cancel": "Cancel",
+                "modal_title": "Confirm Deletion",
+                "modal_body": "Are you sure you want to delete this feedback record? This action cannot be undone.",
+                "modal_cancel": "Cancel",
+                "modal_delete": "Delete",
+                "toast_success": "Operation successful.",
+                "toast_error": "An error occurred.",
+                "toast_deleted": "Record deleted.",
+                "toast_updated": "Record updated.",
+            },
+            "zh": {
+                "nav_submit": "提交回饋",
+                "nav_history": "查看歷史紀錄",
+                "submit_title": "提交員工回饋",
+                "submit_intro": "您的回饋將由 AI 分析情緒與關鍵主題。所有提交均受到保密。",
+                "name_label": "員工姓名",
+                "name_placeholder": "（若不填則為匿名）",
+                "feedback_label": "回饋內容",
+                "feedback_placeholder": "請在此輸入您的回饋...",
+                "analyze_btn": "開始分析",
+                "analyzing_btn": "分析中...",
+                "history_title": "回饋歷史紀錄",
+                "th_time": "時間",
+                "th_name": "姓名",
+                "th_feedback": "回饋內容",
+                "th_sentiment": "情緒分析",
+                "th_keywords": "關鍵字",
+                "th_actions": "操作",
+                "loading_history": "正在載入歷史紀錄...",
+                "no_history": "目前沒有歷史紀錄。",
+                "edit": "編輯",
+                "delete": "刪除",
+                "save": "儲存",
+                "cancel": "取消",
+                "modal_title": "確認刪除",
+                "modal_body": "您確定要刪除這筆回饋紀錄嗎？此操作無法復原。",
+                "modal_cancel": "取消",
+                "modal_delete": "刪除",
+                "toast_success": "操作成功。",
+                "toast_error": "發生錯誤。",
+                "toast_deleted": "紀錄已刪除。",
+                "toast_updated": "紀錄已更新。",
+            }
+        };
+
+        // ===================================
+        // 狀態管理
+        // ===================================
+        let currentLang = 'en';
+        let currentEditingId = null; // 追蹤正在編輯的 row ID
+        let deleteTargetId = null; // 追蹤準備刪除的 ID
+
+        // ===================================
+        // 時間格式化工具 (修正時區顯示問題)
+        // ===================================
+        function formatTime(isoString) {
+            if (!isoString) return 'N/A';
+            
+            // 1. 建立日期物件。瀏覽器會自動將 ISO 字串轉換成用戶本地時區的 Date 物件。
+            const date = new Date(isoString);
+
+            // 2. 設置格式選項：年/月/日 時:分:秒
+            const options = {
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: false, // 使用 24 小時制
+            };
+
+            try {
+                // 使用 toLocaleString 是關鍵，它會使用瀏覽器的本地時區
+                const locale = currentLang === 'zh' ? 'zh-TW' : 'en-US'; 
+                return date.toLocaleString(locale, options);
+            } catch (e) {
+                console.error("Date formatting failed:", e);
+                return date.toISOString().replace('T', ' ').substring(0, 19);
+            }
+        }
+
+        // ===================================
+        // DOM 元素參考
+        // ===================================
+        const langToggle = document.getElementById('lang-toggle');
+        const feedbackForm = document.getElementById('feedback-form');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const analyzeBtnText = document.getElementById('analyze-btn-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const analysisResult = document.getElementById('analysis-result');
+        const historyTableBody = document.getElementById('history-table-body');
+        const historyTable = document.getElementById('history-table');
+        const historyLoading = document.getElementById('history-loading');
+        const historyEmpty = document.getElementById('history-empty');
+        const refreshHistoryBtn = document.getElementById('refresh-history-btn');
+        const deleteModal = document.getElementById('delete-modal');
+        const modalConfirmDeleteBtn = document.getElementById('modal-confirm-delete-btn');
+        const toast = document.getElementById('toast-notification');
+        const toastContent = document.getElementById('toast-content');
+        const toastIcon = document.getElementById('toast-icon');
+        const toastMessage = document.getElementById('toast-message');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // ===================================
+        // 語言切換功能
+        // ===================================
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+            
+            // 更新所有帶有 data-key 的 DOM 元素
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (texts[lang][key]) {
+                    el.textContent = texts[lang][key];
+                }
+            });
+
+            // 更新 Placeholder
+            const nameInput = document.getElementById('name');
+            const feedbackInput = document.getElementById('feedback');
+            if (nameInput) nameInput.placeholder = texts[lang].name_placeholder;
+            if (feedbackInput) feedbackInput.placeholder = texts[lang].feedback_placeholder;
+            
+            // 更新標題
+            document.getElementById('nav-title').textContent = (lang === 'zh') ? "AI 回饋分析器" : "AI Feedback Analyzer";
+            document.title = (lang === 'zh') ? "AI 員工回饋分析器" : "AI Employee Feedback Analyzer";
+
+            // 更新切換按鈕狀態
+            langToggle.checked = (lang === 'zh');
+        }
+
+        langToggle.addEventListener('change', (e) => {
+            setLanguage(e.target.checked ? 'zh' : 'en');
+            // 如果在歷史紀錄頁面，重新整理表格以顯示正確的按鈕文字
+            if (document.getElementById('page-history').classList.contains('hidden') === false) {
+                fetchHistory();
+            }
+        });
+
+        // ===================================
+        // 頁面導覽
+        // ===================================
+        function showPage(pageId) {
+            // 隱藏所有頁面
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.add('hidden');
+            });
+            // 顯示目標頁面
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
+
+            // 更新導覽列按鈕樣式 (電腦版)
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('bg-gray-900', 'text-white');
+                link.classList.add('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+            });
+            document.getElementById(`nav-btn-${pageId}`).classList.add('bg-gray-900', 'text-white');
+            document.getElementById(`nav-btn-${pageId}`).classList.remove('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+
+            // 更新導覽列按鈕樣式 (手機版)
+            document.querySelectorAll('.nav-link-mobile').forEach(link => {
+                link.classList.remove('bg-gray-900', 'text-white');
+                link.classList.add('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+            });
+            const mobileLink = document.querySelector(`.nav-link-mobile[data-key="${pageId === 'submit' ? 'nav_submit' : 'nav_history'}"]`);
+            if (mobileLink) {
+                mobileLink.classList.add('bg-gray-900', 'text-white');
+                mobileLink.classList.remove('text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+            }
+
+            // 如果切換到歷史紀錄頁面，自動載入資料
+            if (pageId === 'history') {
+                fetchHistory();
+            }
+        }
+        
+        // 手機選單開關
+        mobileMenuButton.addEventListener('click', () => {
+            const isMenuOpen = mobileMenu.classList.toggle('hidden');
+            mobileMenuButton.querySelector('[name="menu-outline"]').classList.toggle('hidden', !isMenuOpen);
+            mobileMenuButton.querySelector('[name="close-outline"]').classList.toggle('hidden', isMenuOpen);
+        });
+
+        function closeMobileMenu() {
+            mobileMenu.classList.add('hidden');
+            mobileMenuButton.querySelector('[name="menu-outline"]').classList.remove('hidden');
+            mobileMenuButton.querySelector('[name="close-outline"]').classList.add('hidden');
+        }
+
+        // ===================================
+        // API 呼叫 (分析)
+        // ===================================
+        feedbackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 防止重複提交
+            if (analyzeBtn.disabled) return;
+
+            // 獲取表單資料
+            const name = document.getElementById('name').value;
+            const feedback = document.getElementById('feedback').value;
+
+            if (!feedback.trim()) {
+                showResult(false, texts[currentLang].feedback_placeholder);
+                return;
+            }
+
+            // 顯示載入狀態
+            setLoading(true);
+
+            try {
+                // POST to analyze
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, feedback, lang: currentLang })
+                });
+
+                if (!response.ok) throw new Error("Analyze API returned non-OK status");
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    // Accept both possible casing from backend
+                    const sentiment = result.data.Sentiment || result.data.sentiment || 'Neutral';
+                    const keywords = result.data.Keywords || result.data.keywords || '';
+
+                    const sentimentText = (sentiment === 'Positive') 
+                        ? `<span class="text-green-300">${escapeHTML(sentiment)}</span>`
+                        : (sentiment === 'Negative')
+                        ? `<span class="text-red-300">${escapeHTML(sentiment)}</span>`
+                        : `<span class="text-yellow-300">${escapeHTML(sentiment)}</span>`;
+                    
+                    const keywordsText = (keywords || '').split(',').filter(k=>k.trim()).map(k => 
+                        `<span class="inline-block bg-blue-700 text-blue-100 text-xs font-semibold px-2 py-0.5 rounded-full">${escapeHTML(k.trim())}</span>`
+                    ).join(' ');
+
+                    const successMessage = `
+                        <div class="flex items-center space-x-4">
+                            <ion-icon name="checkmark-circle" class="text-3xl text-green-400"></ion-icon>
+                            <div>
+                                <p class="text-lg font-bold">Analysis Complete:</p>
+                                <p class="text-sm">Sentiment: ${sentimentText}</p>
+                                <div class="mt-2 flex flex-wrap gap-2">Keywords: ${keywordsText}</div>
+                            </div>
+                        </div>
+                    `;
+                    showResult(true, successMessage);
+                    // 清空表單
+                    feedbackForm.reset();
+                    // Optionally refresh history so user sees the new entry (kept optional to avoid intrusive refresh)
+                } else {
+                    showResult(false, result.error || texts[currentLang].toast_error);
+                }
+
+            } catch (error) {
+                console.error("Analyze API error:", error);
+                showResult(false, texts[currentLang].toast_error);
+            } finally {
+                // 恢復按鈕狀態
+                setLoading(false);
+            }
+        });
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                analyzeBtn.disabled = true;
+                loadingSpinner.classList.remove('hidden');
+                analyzeBtnText.textContent = texts[currentLang].analyzing_btn;
+            } else {
+                analyzeBtn.disabled = false;
+                loadingSpinner.classList.add('hidden');
+                analyzeBtnText.textContent = texts[currentLang].analyze_btn;
+            }
+        }
+
+        function showResult(success, message) {
+            analysisResult.innerHTML = message;
+            analysisResult.classList.remove('hidden', 'bg-red-900', 'text-red-100', 'bg-green-900', 'text-green-100', 'bg-gray-900', 'text-gray-100');
+            
+            if (success) {
+                analysisResult.classList.add('bg-gray-700', 'text-white');
+            } else {
+                analysisResult.classList.add('bg-red-900', 'text-red-100');
+            }
+
+            // 8秒後自動隱藏
+            setTimeout(() => {
+                analysisResult.classList.add('hidden');
+            }, 8000);
+        }
+
+        // ===================================
+        // API 呼叫 (歷史紀錄 CRUD)
+        // ===================================
+        
+        async function fetchHistory() {
+            historyLoading.classList.remove('hidden');
+            historyTable.classList.add('hidden');
+            historyEmpty.classList.add('hidden');
+            historyTableBody.innerHTML = ''; // 清空
+
+            try {
+                const response = await fetch('/api/history');
+                if (!response.ok) throw new Error("Failed to fetch history");
+
+                const result = await response.json();
+                const records = result.data || [];
+
+                if (result.success && records.length > 0) {
+                    renderHistoryTable(records);
+                    historyTable.classList.remove('hidden');
+                } else {
+                    historyEmpty.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Fetch history error:", error);
+                historyEmpty.textContent = texts[currentLang].toast_error;
+                historyEmpty.classList.remove('hidden');
+            } finally {
+                historyLoading.classList.add('hidden');
+            }
+        }
+
+        function getSentimentBadge(sentiment) {
+            let colorClass = '';
+            const s = (sentiment || '').toLowerCase();
+            switch (s) {
+                case 'positive':
+                    colorClass = 'bg-green-600 text-green-100';
+                    break;
+                case 'negative':
+                    colorClass = 'bg-red-600 text-red-100';
+                    break;
+                case 'neutral':
+                    colorClass = 'bg-yellow-600 text-yellow-100';
+                    break;
+                default:
+                    colorClass = 'bg-gray-600 text-gray-300';
+            }
+            return `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}">${escapeHTML(sentiment || '')}</span>`;
+        }
+
+        function getKeywordsTags(keywords) {
+            if (!keywords) return '';
+            return keywords.split(',').map(k => 
+                `<span class="inline-block bg-blue-700 text-blue-100 text-xs font-medium px-2 py-0.5 rounded-full mr-1 mb-1">${escapeHTML(k.trim())}</span>`
+            ).join('');
+        }
+
+
+        function renderHistoryTable(records) {
+            historyTableBody.innerHTML = ''; // 清空
+            records.forEach(record => {
+                const row = document.createElement('tr');
+                row.id = `row-${record.id}`;
+                row.className = "hover:bg-gray-700 transition duration-150 ease-in-out";
+                // Use the backend's keys but support different casings
+                const time = record.Time || record.time || record.createdAt || '';
+                const name = record.Name || record.name || '';
+                const feedback = record.Feedback || record.feedback || '';
+                const sentiment = record.Sentiment || record.sentiment || 'Neutral';
+                const keywords = record.Keywords || record.keywords || '';
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 text-sm text-gray-300">${formatTime(time)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-300" data-field="Name">${escapeHTML(name)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-300 overflow-hidden text-ellipsis max-h-16" data-field="Feedback">${escapeHTML(feedback)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-300" data-field="Sentiment">${getSentimentBadge(sentiment)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-300" data-field="Keywords">${getKeywordsTags(keywords)}</td>
+                    <td class="px-6 py-4 text-sm font-medium space-x-2" data-field="Actions">
+                        ${createActionButtons(record.id)}
+                    </td>
+                `;
+                historyTableBody.appendChild(row);
+            });
+        }
+        
+        function createActionButtons(id, isEditing = false) {
+             if (isEditing) {
+                return `
+                    <button onclick="handleSave('${id}')" class="p-1 text-green-400 hover:text-green-300 focus:outline-none" title="${texts[currentLang].save}">
+                        <ion-icon name="save-outline" class="text-2xl"></ion-icon>
+                    </button>
+                    <button onclick="handleCancelEdit('${id}')" class="p-1 text-gray-400 hover:text-gray-300 focus:outline-none" title="${texts[currentLang].cancel}">
+                        <ion-icon name="close-circle-outline" class="text-2xl"></ion-icon>
+                    </button>
+                `;
+            } else {
+                return `
+                    <button onclick="handleEdit('${id}')" class="p-1 text-blue-400 hover:text-blue-300 focus:outline-none" title="${texts[currentLang].edit}">
+                        <ion-icon name="create-outline" class="text-2xl"></ion-icon>
+                    </button>
+                    <button onclick="openDeleteModal('${id}')" class="p-1 text-red-400 hover:text-red-300 focus:outline-none" title="${texts[currentLang].delete}">
+                        <ion-icon name="trash-outline" class="text-2xl"></ion-icon>
+                    </button>
+                `;
+            }
+        }
+
+        // --- 編輯 (Update) ---
+        function handleEdit(id) {
+            // 檢查是否有其他項目正在編輯，如果是，則先取消
+            if (currentEditingId && currentEditingId !== id) {
+                handleCancelEdit(currentEditingId);
+            }
+            currentEditingId = id;
+            
+            const row = document.getElementById(`row-${id}`);
+            const nameCell = row.querySelector('[data-field="Name"]');
+            const feedbackCell = row.querySelector('[data-field="Feedback"]');
+            const actionsCell = row.querySelector('[data-field="Actions"]');
+            
+            // 儲存原始資料 (使用 textContent 而非 innerHTML 以確保純文本)
+            row.dataset.originalName = nameCell.textContent.trim();
+            row.dataset.originalFeedback = feedbackCell.textContent.trim();
+
+            // 轉換為 input 和 textarea
+            nameCell.innerHTML = `<input type="text" class="w-full bg-gray-600 rounded p-1 text-white border border-blue-500" value="${escapeHTML(row.dataset.originalName)}">`;
+            feedbackCell.innerHTML = `<textarea class="w-full bg-gray-600 rounded p-1 text-white border border-blue-500 resize-none" rows="3">${escapeHTML(row.dataset.originalFeedback)}</textarea>`;
+            
+            // 更新按鈕
+            actionsCell.innerHTML = createActionButtons(id, true);
+        }
+
+        function handleCancelEdit(id) {
+            const row = document.getElementById(`row-${id}`);
+            if (!row) return;
+
+            const nameCell = row.querySelector('[data-field="Name"]');
+            const feedbackCell = row.querySelector('[data-field="Feedback"]');
+            const actionsCell = row.querySelector('[data-field="Actions"]');
+            
+            // 恢復原始資料 (使用 stored dataset)
+            nameCell.textContent = row.dataset.originalName;
+            feedbackCell.textContent = row.dataset.originalFeedback;
+            
+            // 恢復按鈕
+            actionsCell.innerHTML = createActionButtons(id, false);
+            
+            currentEditingId = null;
+        }
+
+        // ======= Updated: handleSave now updates Sentiment & Keywords after backend re-analysis =======
+        async function handleSave(id) {
+            const row = document.getElementById(`row-${id}`);
+            const newName = row.querySelector('input').value;
+            const newFeedback = row.querySelector('textarea').value;
+            const actionsCell = row.querySelector('[data-field="Actions"]');
+            
+            // 臨時禁用按鈕並顯示載入圖示
+            actionsCell.innerHTML = `<div class="w-12 h-6 flex justify-center items-center"><svg class="spinner h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
+
+            try {
+                // 呼叫 PUT 更新，後端會重新分析並回傳更新後的 record
+                const response = await fetch(`/api/history/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Name: newName, Feedback: newFeedback })
+                });
+
+                if (!response.ok) throw new Error('Update request failed');
+
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    // 更新成功：更新 Name / Feedback / Sentiment / Keywords
+                    const updated = result.data;
+                    const updatedName = updated.Name || updated.name || newName;
+                    const updatedFeedback = updated.Feedback || updated.feedback || newFeedback;
+                    const updatedSentiment = updated.Sentiment || updated.sentiment || '';
+                    const updatedKeywords = updated.Keywords || updated.keywords || '';
+
+                    // 更新 DOM：Name & Feedback cells
+                    const nameCell = row.querySelector('[data-field="Name"]');
+                    const feedbackCell = row.querySelector('[data-field="Feedback"]');
+                    const sentimentCell = row.querySelector('[data-field="Sentiment"]');
+                    const keywordsCell = row.querySelector('[data-field="Keywords"]');
+
+                    nameCell.textContent = escapeHTML(updatedName);
+                    feedbackCell.textContent = escapeHTML(updatedFeedback);
+
+                    // 更新情緒與關鍵字顯示（使用相同的顯示元件）
+                    if (sentimentCell) {
+                        sentimentCell.innerHTML = getSentimentBadge(updatedSentiment);
+                    }
+                    if (keywordsCell) {
+                        keywordsCell.innerHTML = getKeywordsTags(updatedKeywords);
+                    }
+
+                    // 更新 dataset 原始值
+                    row.dataset.originalName = nameCell.textContent;
+                    row.dataset.originalFeedback = feedbackCell.textContent;
+
+                    // 恢復按鈕
+                    actionsCell.innerHTML = createActionButtons(id, false);
+                    currentEditingId = null;
+                    showToast(true, texts[currentLang].toast_updated);
+                } else {
+                    // 若後端回傳失敗，還原編輯
+                    handleCancelEdit(id);
+                    showToast(false, result.error || texts[currentLang].toast_error);
+                }
+            } catch (error) {
+                console.error("Save error:", error);
+                handleCancelEdit(id);
+                showToast(false, texts[currentLang].toast_error);
+            }
+        }
+
+        // --- 刪除 (Delete) ---
+        function openDeleteModal(id) {
+            deleteTargetId = id;
+            deleteModal.classList.remove('opacity-0', 'pointer-events-none');
+            deleteModal.querySelector('.modal-content').classList.remove('-translate-y-10');
+        }
+
+        function closeModal() {
+            deleteModal.classList.add('opacity-0', 'pointer-events-none');
+            deleteModal.querySelector('.modal-content').classList.add('-translate-y-10');
+            deleteTargetId = null;
+        }
+
+        modalConfirmDeleteBtn.addEventListener('click', async () => {
+            if (!deleteTargetId) return;
+            
+            const id = deleteTargetId;
+            closeModal(); // 先關閉 Modal
+
+            try {
+                const response = await fetch(`/api/history/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('Delete failed');
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 從 DOM 中移除該 row
+                    const rowEl = document.getElementById(`row-${id}`);
+                    if (rowEl) rowEl.remove();
+                    showToast(true, texts[currentLang].toast_deleted);
+                    // 檢查是否為空
+                    if (historyTableBody.children.length === 0) {
+                        historyEmpty.classList.remove('hidden');
+                        historyTable.classList.add('hidden');
+                    }
+                } else {
+                    showToast(false, result.error || texts[currentLang].toast_error);
+                }
+            } catch (error) {
+                console.error("Delete error:", error);
+                showToast(false, texts[currentLang].toast_error);
+            }
+        });
+
+        // ===================================
+        // 輔助工具
+        // ===================================
+        
+        // Toast (提示訊息)
+        let toastTimer;
+        function showToast(success, message) {
+            clearTimeout(toastTimer);
+
+            toastMessage.textContent = message;
+            
+            // 更新 icon 和顏色
+            if (success) {
+                toastIcon.innerHTML = `<ion-icon name="checkmark-circle-outline" class="text-xl"></ion-icon>`;
+                toastIcon.className = "inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-400 bg-green-800 rounded-lg";
+                toastContent.className = "flex items-center w-full max-w-xs p-4 rounded-lg shadow text-gray-300 bg-gray-700";
+            } else {
+                toastIcon.innerHTML = `<ion-icon name="alert-circle-outline" class="text-xl"></ion-icon>`;
+                toastIcon.className = "inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-400 bg-red-800 rounded-lg";
+                toastContent.className = "flex items-center w-full max-w-xs p-4 rounded-lg shadow text-gray-300 bg-gray-700";
+            }
+
+            toast.classList.add('show');
+            
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // HTML 轉義
+        function escapeHTML(str) {
+            if (typeof str !== 'string') return str;
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+        
+        // 重新整理按鈕
+        refreshHistoryBtn.addEventListener('click', fetchHistory);
+
+        // ===================================
+        // 初始化
+        // ===================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // 檢查 localStorage 中的語言設定
+            const savedLang = localStorage.getItem('lang') || 'en';
+            setLanguage(savedLang);
+            
+            // 預設顯示提交頁面
+            showPage('submit');
+        });
+
+    </script>
+</body>
+</html>
