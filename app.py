@@ -236,12 +236,37 @@ def update_record(record_id):
 
 
 # 刪除紀錄 (Delete) ✅✅✅ 已修正型別問題
+# 刪除紀錄 (Delete) ✅自動判斷是否刪除員工
 @app.route("/api/history/<record_id>", methods=["DELETE"])
 def delete_record(record_id):
-    cursor.execute("DELETE FROM analysis_results WHERE feedback_id=%s", (record_id,))
-    cursor.execute("DELETE FROM feedbacks WHERE id=%s", (record_id,))
-    db.commit()
-    return jsonify({"success": True})
+    try:
+        # 1. 取得對應的 employee_id
+        cursor.execute("SELECT employee_id FROM feedbacks WHERE id=%s", (record_id,))
+        result = cursor.fetchone()
+        if not result:
+            return jsonify({"success": False, "error": "Record not found"}), 404
+
+        employee_id = result["employee_id"]
+
+        # 2. 刪除分析結果
+        cursor.execute("DELETE FROM analysis_results WHERE feedback_id=%s", (record_id,))
+        # 3. 刪除 feedback
+        cursor.execute("DELETE FROM feedbacks WHERE id=%s", (record_id,))
+        db.commit()
+
+        # 4. 檢查該員工是否還有其他 feedback
+        cursor.execute("SELECT COUNT(*) AS cnt FROM feedbacks WHERE employee_id=%s", (employee_id,))
+        count_result = cursor.fetchone()
+        if count_result["cnt"] == 0:
+            # 如果沒有其他 feedback，就刪掉該 employee
+            cursor.execute("DELETE FROM employees WHERE id=%s", (employee_id,))
+            db.commit()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        print("Delete error:", e)
+        return jsonify({"success": False, "error": "Database error"}), 500
+
 
 
 # --- 6. 運行應用程式 ---
