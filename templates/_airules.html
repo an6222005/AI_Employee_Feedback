@@ -1,0 +1,60 @@
+<h2 class="fw-bold mb-2">⚙️ AI 判定規則設定</h2>
+<p class="text-muted mb-4">在這裡設定專屬的企業字典。當員工回饋包含特定關鍵字時，將強制覆蓋 AI 的判定結果。</p>
+
+<div class="card shadow-sm border-0 rounded-4 p-4 mb-4 bg-white border-top border-success border-4">
+    <h5 class="fw-bold text-success mb-3">➕ 新增自訂關鍵字</h5>
+    <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">關鍵字 (Keyword)</label>
+            <input type="text" id="new-rule-keyword" class="form-control" placeholder="例如：畫大餅、慣老闆...">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">強制標記情緒</label>
+            <select id="new-rule-sentiment" class="form-select">
+                <option value="Negative">🔴 負面 (Negative)</option>
+                <option value="Neutral">⚪ 中立 (Neutral)</option>
+                <option value="Positive">🟢 正面 (Positive)</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-bold">強制歸類</label>
+            <select id="new-rule-category" class="form-select">
+                <option value="">🤖 交給 AI 判斷 (不強制)</option>
+                
+                <option value="人際關係與管理">人際關係與管理</option>
+                <option value="薪資福利">薪資福利</option>
+                <option value="工作負載">工作負載</option>
+                <option value="硬體與環境">硬體與環境</option>
+                <option value="職涯發展">職涯發展</option>
+            </select>
+        </div>
+        <div class="d-flex align-items-end gap-2">
+    <button id="rule-submit-btn" class="btn btn-primary fw-bold shadow-sm" onclick="saveRule()">
+        ➕ 新增
+    </button>
+    
+    <button id="rule-cancel-btn" class="btn btn-outline-secondary shadow-sm d-none" onclick="cancelEditRule()">
+        ✖ 取消
+    </button>
+</div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4 p-4 bg-white">
+    <h5 class="fw-bold text-secondary mb-3">📋 目前生效的規則</h5>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="30%">包含關鍵字</th>
+                    <th width="20%">強制轉換情緒</th>
+                    <th width="30%">強制歸類為</th>
+                    <th width="20%">操作</th>
+                </tr>
+            </thead>
+            <tbody id="rulesTableBody">
+                <tr><td colspan="4" class="text-center text-muted">資料載入中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,198 @@
+<!-- 引入拖曳套件 SortableJS -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<!-- 專屬拖曳樣式 -->
+<style>
+    /* 1. 拖曳把手的專屬樣式 */
+    .drag-handle {
+        cursor: grab;
+        color: #adb5bd;
+        transition: color 0.2s ease;
+        z-index: 10;
+    }
+    .drag-handle:active {
+        cursor: grabbing; /* 按下時游標變成抓取的拳頭 */
+    }
+    .drag-handle:hover {
+        color: #0d6efd; /* 滑鼠移過去變成藍色 */
+    }
+
+    /* 2. 乾淨的拖曳佔位虛線框 (消滅糊糊的殘影) */
+    .sortable-ghost {
+        background-color: #f8f9fa !important;
+        border: 3px dashed #ced4da !important;
+        opacity: 1 !important;
+    }
+    .sortable-ghost > * {
+        visibility: hidden; /* 隱藏殘影內的圖表 */
+    }
+</style>
+
+<h2 class="fw-bold mb-4">數據概覽</h2>
+
+<!-- ========================================== -->
+<!-- 🌟 高階主管 KPI 戰情卡 -->
+<!-- ========================================== -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 bg-primary text-white h-100">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                <h6 class="text-white-50 fw-bold mb-1">📝 總回饋數量</h6>
+                <h2 class="fw-bold mb-0" id="kpi-total">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 bg-success text-white h-100">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                <h6 class="text-white-50 fw-bold mb-1">💖 組織健康度 (正面佔比)</h6>
+                <h2 class="fw-bold mb-0" id="kpi-health">0%</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 bg-danger text-white h-100">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                <h6 class="text-white-50 fw-bold mb-1">🔥 首要改善痛點</h6>
+                <h4 class="fw-bold mb-0" id="kpi-painpoint">-</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 bg-warning text-dark h-100">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                <h6 class="text-muted fw-bold mb-1">⚠️ 需關注部門 (負面最多)</h6>
+                <h4 class="fw-bold mb-0" id="kpi-dept">-</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 🔍 全域篩選狀態與一鍵重置 -->
+<!-- ========================================== -->
+<div class="row mb-3" id="filter-status-row" style="display: none;">
+    <div class="col-12">
+        <div class="alert alert-secondary d-flex justify-content-between align-items-center py-2 mb-0 border-0 shadow-sm" style="background-color: #f8f9fa;">
+            <div>
+                <span class="fw-bold me-2 text-dark">🔍 目前篩選條件：</span>
+                <span id="current-filter-badges"></span>
+            </div>
+            <button class="btn btn-sm btn-outline-danger fw-bold" onclick="clearAllFilters()">
+                ✖ 清除全部篩選
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- 📦 拖曳大箱子起點：所有圖表都放在這裡面 -->
+<!-- ========================================== -->
+<div class="row g-4 mb-4" id="sortable-charts">
+
+    <!-- 區塊 1：整體情緒分佈 -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4 p-4 bg-white h-100 position-relative">
+            <div class="position-absolute top-0 start-0 p-3" style="z-index: 10;">
+                <button id="lock-btn-sentiment" class="btn btn-sm btn-light shadow-sm border rounded-circle" onclick="toggleLock('sentiment')" title="鎖定此圖表 (不受其他點擊連動影響)">🔓</button>
+            </div>
+            <div class="drag-handle position-absolute top-0 end-0 p-3" title="按住拖曳排序">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
+            </div>
+            <h5 class="fw-bold text-muted mb-4 text-center">🎭 整體情緒分佈</h5>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="sentimentChart"></canvas> 
+            </div>
+        </div>
+    </div>
+
+    <!-- 區塊 2：回饋類別佔比 -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4 p-4 bg-white h-100 position-relative">
+            <div class="position-absolute top-0 start-0 p-3" style="z-index: 10;">
+                <button id="lock-btn-category" class="btn btn-sm btn-light shadow-sm border rounded-circle" onclick="toggleLock('category')" title="鎖定此圖表 (不受其他點擊連動影響)">🔓</button>
+            </div>
+            <div class="drag-handle position-absolute top-0 end-0 p-3" title="按住拖曳排序">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
+            </div>
+            <h5 class="fw-bold text-muted mb-4 text-center">🏷️ 回饋類別佔比</h5>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="categoryChart"></canvas> 
+            </div>
+        </div>
+    </div>
+
+    <!-- 區塊 3：各部門回饋數量 -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4 p-4 bg-white h-100 position-relative">
+            <div class="position-absolute top-0 start-0 p-3" style="z-index: 10;">
+                <button id="lock-btn-dept" class="btn btn-sm btn-light shadow-sm border rounded-circle" onclick="toggleLock('dept')" title="鎖定此圖表 (不受其他點擊連動影響)">🔓</button>
+            </div>
+            <div class="drag-handle position-absolute top-0 end-0 p-3" title="按住拖曳排序">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
+            </div>
+            <h5 class="fw-bold text-muted mb-4 text-center">🏢 各部門回饋數量</h5>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="deptChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+    <!-- 區塊 4：痛點熱力圖 -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4 p-4 bg-white h-100 position-relative">
+            <!-- 拖曳把手 -->
+            <div class="drag-handle position-absolute top-0 end-0 p-3" title="按住拖曳排序">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
+            </div>
+            <h5 class="fw-bold text-center mb-2" id="heatmap-title">🔥 跨部門痛點熱力圖 (聚焦: 負面)</h5>
+            <p class="text-center text-muted small mb-4">顏色越深代表該部門在此類別的「負面回饋」越多，請優先關注深紅色區塊。</p>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm mb-0" id="heatmap-table" style="table-layout: fixed;">
+                    <thead id="heatmap-thead"></thead>
+                    <tbody id="heatmap-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 區塊 5：關鍵字文字雲 -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4 p-4 bg-white h-100 position-relative">
+            <!-- 拖曳把手 -->
+            <div class="drag-handle position-absolute top-0 end-0 p-3" title="按住拖曳排序">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
+            </div>
+            <h5 class="fw-bold text-center mb-4" id="wordcloud-title">☁️ 熱門關鍵字分析</h5>
+            <p class="text-center text-muted small mb-4">字體越大代表該詞彙在目前的篩選條件中被提及的次數越多。</p>
+            <div id="wordcloud-container" class="d-flex flex-wrap justify-content-center align-items-center" style="min-height: 200px; gap: 15px; padding: 20px; background-color: #f8f9fa; border-radius: 15px;">
+                </div>
+        </div>
+    </div>
+
+    <!-- 區塊 6：走勢圖 -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4 p-4 bg-white h-100 position-relative">
+            <div class="drag-handle position-absolute top-0 end-0 p-3" title="按住拖曳排序">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold text-center mb-0 mt-2">📈 每日情緒走勢交叉分析</h5>
+                <div class="d-flex gap-2 align-items-center bg-light p-1 rounded-3 border mt-2 mt-md-0">
+                    <span class="text-muted small fw-bold ms-2">📅</span>
+                    <input type="date" id="trend-start-date" class="form-control form-control-sm border-0 bg-transparent" onchange="drawTrendChart()">
+                    <span class="text-muted">~</span>
+                    <input type="date" id="trend-end-date" class="form-control form-control-sm border-0 bg-transparent" onchange="drawTrendChart()">
+                    <button class="btn btn-sm btn-outline-secondary border-0" onclick="document.getElementById('trend-start-date').value=''; document.getElementById('trend-end-date').value=''; drawTrendChart();">清除</button>
+                </div>
+            </div>
+
+            <div style="height: 300px;">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+<!-- 📦 拖曳大箱子結束 -->

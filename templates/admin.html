@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR 戰情室 | 員工心聲管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
+    <style>
+    
+        body { background-color: #f4f7f5; font-family: 'Noto Sans TC', sans-serif; }
+        .sidebar { height: 100vh; background: #2D3732; color: white; position: fixed; width: 220px; z-index: 1000; }
+        .main-content { margin-left: 220px; padding: 2rem; }
+        
+        .reasoning-box { 
+            background-color: #f8f9fa; 
+            border-left: 3px solid #4A7C59; 
+            padding: 10px; 
+            font-size: 0.9rem; 
+            margin-top: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .reasoning-box::-webkit-scrollbar { width: 6px; }
+        .reasoning-box::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 4px; }
+        
+        .badge-sentiment { font-size: 0.85rem; padding: 5px 10px; }
+
+        .sticky-filter {
+            position: sticky;
+            top: 0;
+            padding-top: 15px;
+            z-index: 1020;
+            background-color: #f4f7f5;
+        }
+
+        .nav-link { cursor: pointer; }
+        /* ========================================== */
+        /* ☁️ 文字雲專用樣式 (水平乾淨版) */
+        /* ========================================== */
+        #wordcloud-container span {
+            font-family: 'Noto Sans TC', sans-serif;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        #wordcloud-container span:hover {
+            background-color: #e9ecef;
+        }
+        
+        /* 五種大小等級，s1 最大，s5 最小 */
+        #wordcloud-container .wc-s1 { font-size: 38px; line-height: 48px; }
+        #wordcloud-container .wc-s2 { font-size: 30px; line-height: 40px; }
+        #wordcloud-container .wc-s3 { font-size: 24px; line-height: 34px; }
+        #wordcloud-container .wc-s4 { font-size: 18px; line-height: 28px; }
+        #wordcloud-container .wc-s5 { font-size: 14px; line-height: 24px; }
+        /* 👆👆👆 貼到這裡結束 👆👆👆 */
+    </style>
+</head>
+<body>
+
+    <div class="sidebar p-3">
+        <h4 class="fw-bold mb-4 text-center mt-3 text-success">🌱 HR Admin</h4>
+        <ul class="nav flex-column gap-2">
+            <li class="nav-item">
+                <a id="nav-table" class="nav-link text-white fw-bold active bg-success bg-opacity-25 rounded" onclick="switchTab('table')">📝 回饋管理大表</a>
+            </li>
+            <li class="nav-item">
+                <a id="nav-dashboard" class="nav-link text-white opacity-75" onclick="switchTab('dashboard')">📊 數據概覽</a>
+            </li>
+            <li class="nav-item">
+                <a id="nav-airules" class="nav-link text-white opacity-75" onclick="switchTab('airules')">⚙️ AI 規則設定</a>
+            </li>
+            <li class="nav-item">
+                <a id="nav-recycle" class="nav-link text-white opacity-75" onclick="switchTab('recycle')">🗑️ 資源回收桶</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div id="section-table">
+            {% include '_table.html' %}
+        </div>
+        <div id="section-dashboard" style="display: none;">
+            {% include '_dashboard.html' %}
+        </div>
+        <div id="section-airules" style="display: none;">
+            {% include '_airules.html' %}
+        </div>
+        <div id="section-recycle" style="display: none;">
+            {% include '_recycle.html' %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+    <script>
+        // ==========================================
+        // 🔄 SPA 單頁切換魔法
+        // ==========================================
+        function switchTab(target) {
+            document.getElementById('section-table').style.display = 'none';
+            document.getElementById('section-dashboard').style.display = 'none';
+            document.getElementById('section-airules').style.display = 'none'; 
+            document.getElementById('section-recycle').style.display = 'none'; 
+            
+            document.getElementById('section-' + target).style.display = 'block';
+
+            document.getElementById('nav-table').className = "nav-link text-white opacity-75";
+            document.getElementById('nav-dashboard').className = "nav-link text-white opacity-75";
+            document.getElementById('nav-airules').className = "nav-link text-white opacity-75"; 
+            document.getElementById('nav-recycle').className = "nav-link text-white opacity-75"; 
+            
+            let activeNav = document.getElementById('nav-' + target);
+            activeNav.className = "nav-link text-white fw-bold active bg-success bg-opacity-25 rounded";
+
+            if (target === 'airules') loadRules();
+            if (target === 'recycle') loadRecycleBin(); 
+        }
+
+        // ==========================================
+        // 📊 全域變數
+        // ==========================================
+        let allFeedbackData = []; 
+        Chart.register(ChartDataLabels);
+        let dataTableInstance = null; 
+        let sentimentChartInstance = null;
+        let deptChartInstance = null;
+        let categoryChartInstance = null;
+        let trendChartInstance = null;
+        let isEditMode = false; // 👈 新增：用來記錄現在是否為「批次操作模式」
+        
+        // 👈 新增：監聽 DataTable 下拉選單的變化，自動存入記憶體，治好失憶症！
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('dataTable-selector')) {
+                localStorage.setItem('adminPreferredPageSize', e.target.value);
+            }
+        });
+
+        // ==========================================
+        // 🔄 獨立背景抓資料函數
+        // ==========================================
+        async function loadFeedbacks() {
+            try {
+                const response = await fetch('/api/admin/feedbacks');
+                const result = await response.json();
+                if (result.success) {
+                    allFeedbackData = result.data; 
+                    applyFilters(); 
+                } else {
+                    alert("載入資料失敗：" + result.error);
+                }
+            } catch (error) { console.error("Fetch error:", error); }
+        }
+
+        // 🚀 網頁載入時啟動
+        document.addEventListener("DOMContentLoaded", () => {
+            // 讀取排序記憶
+            const savedSort = localStorage.getItem('adminPreferredSort');
+            const sortOrderEl = document.getElementById('sort-order');
+            if (savedSort && sortOrderEl) {
+                sortOrderEl.value = savedSort;
+            }
+
+            loadFeedbacks(); 
+            switchTab('table'); 
+        });
+
+        // ==========================================
+        // 🎯 核心篩選與排序邏輯
+        // ==========================================
+        function applyFilters() {
+            const startDateValue = document.getElementById('filter-start-date') ? document.getElementById('filter-start-date').value : '';
+            const endDateValue = document.getElementById('filter-end-date') ? document.getElementById('filter-end-date').value : '';
+            const dept = document.getElementById('filter-dept') ? document.getElementById('filter-dept').value : 'all';
+            const sentiment = document.getElementById('filter-sentiment') ? document.getElementById('filter-sentiment').value : 'all';
+            const category = document.getElementById('filter-category') ? document.getElementById('filter-category').value : 'all';
+            const classic = document.getElementById('filter-classic') ? document.getElementById('filter-classic').value : 'all';
+            
+            // 💡 1. 取得目前的排序設定，並存入記憶體防失憶
+            const sortOrderEl = document.getElementById('sort-order');
+            const sortOrder = sortOrderEl ? sortOrderEl.value : 'desc';
+            localStorage.setItem('adminPreferredSort', sortOrder);
+
+            // 💡 2. 過濾資料
+            let filteredData = allFeedbackData.filter(item => {
+                let passTime = true;
+                const itemDate = new Date(item.created_at); 
+                if (startDateValue) {
+                    const startDate = new Date(startDateValue);
+                    startDate.setHours(0, 0, 0, 0); 
+                    passTime = passTime && (itemDate >= startDate);
+                }
+                if (endDateValue) {
+                    const endDate = new Date(endDateValue);
+                    endDate.setHours(23, 59, 59, 999); 
+                    passTime = passTime && (itemDate <= endDate);
+                }
+                let passDept = (dept === 'all') || ((item.department || '未提供') === dept);
+                let passSentiment = (sentiment === 'all') || (item.sentiment === sentiment);
+                let passCategory = (category === 'all') || ((item.category || '') === category);
+                let passClassic = (classic === 'all') || (classic === 'true' && item.is_classic === 1);
+                
+                return passTime && passDept && passSentiment && passCategory && passClassic;
+            });
+
+            // 💡 3. 執行排序 (將字串轉換為時間戳來比對)
+            filteredData.sort((a, b) => {
+                const dateA = new Date(a.created_at).getTime();
+                const dateB = new Date(b.created_at).getTime();
+                
+                // 如果是 asc (舊到新) 就 A - B，反之 desc (新到舊) 就是 B - A
+                return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            });
+
+            // 💡 4. 將排序後的資料丟給表格與圖表重新繪製
+            renderTable(filteredData);
+            renderCharts(filteredData);
+        }
+
+        // ==========================================
+        // 📝 畫表格函數 (支援批次模式與記憶筆數)
+        // ==========================================
+        function renderTable(data) {
+            if (dataTableInstance) dataTableInstance.destroy();
+            const table = document.getElementById("feedbackTable");
+            
+            // 1. 動態重建表頭 (根據是否開啟批次模式)
+            let thead = table.querySelector('thead');
+            if (!thead) { thead = document.createElement('thead'); table.appendChild(thead); }
+            
+            let theadHTML = `<tr>`;
+            if (isEditMode) theadHTML += `<th style="width: 50px;" class="text-center">選取</th>`;
+            theadHTML += `<th>時間與分類</th><th>回饋內容</th><th>情緒與 AI 推理</th>`;
+            if (!isEditMode) theadHTML += `<th>單筆操作</th>`; // 批次模式下隱藏單筆按鈕
+            theadHTML += `</tr>`;
+            thead.innerHTML = theadHTML;
+
+            // 2. 建立資料列
+            let tbody = document.getElementById('feedbackTableBody');
+            if(!tbody) { tbody = document.createElement('tbody'); tbody.id = 'feedbackTableBody'; table.appendChild(tbody); }
+            tbody.innerHTML = ''; 
+
+            data.forEach(item => {
+                let badgeColor = item.sentiment === 'Negative' ? 'bg-danger' : item.sentiment === 'Positive' ? 'bg-success' : 'bg-secondary';
+                let classicBtnClass = item.is_classic ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning text-dark';
+                let classicBtnText = item.is_classic ? '⭐ 已為經典' : '設為經典範例';
+                let correctedBadge = item.sentiment !== item.original_sentiment ? `<span class="badge bg-warning text-dark ms-2 border border-warning shadow-sm">✏️ HR 手動校正</span>` : '';
+
+                const tr = document.createElement('tr');
+                let trHTML = '';
+
+                // 批次模式的 Checkbox
+                if (isEditMode) {
+                    trHTML += `<td class="text-center align-middle"><input type="checkbox" class="row-checkbox form-check-input border-secondary fs-5 shadow-sm" value="${item.id}"></td>`;
+                }
+
+                // 常規資料欄位
+                trHTML += `
+                    <td>
+                        <small class="text-muted fw-bold">${item.created_at}</small>
+                        <div class="d-flex flex-column align-items-start mt-2 gap-1">
+                            <span class="badge bg-info text-dark shadow-sm">${item.department || '未提供'}</span>
+                            <span class="badge bg-light text-dark border shadow-sm">${item.category || '未分類'}</span>
+                        </div>
+                    </td>
+                    <td><p class="mb-0" style="font-size: 0.95rem;">${item.feedback}</p></td>
+                    <td>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge ${badgeColor} badge-sentiment shadow-sm">${item.sentiment} (${item.sentiment_score}分)</span>
+                            ${correctedBadge}
+                        </div>
+                        <div class="reasoning-box text-muted shadow-sm"><strong>AI 推理：</strong>${item.reasoning || '無提供'}</div>
+                    </td>
+                `;
+
+                // 單筆模式的按鈕 (只有在非批次模式才顯示)
+                if (!isEditMode) {
+                    trHTML += `
+                    <td class="align-middle">
+                        <button class="btn btn-sm btn-outline-primary mb-2 w-100 fw-bold shadow-sm" onclick="correctSentiment(${item.id})">✏️ 人工校正</button>
+                        <button class="btn btn-sm ${classicBtnClass} mb-2 w-100 shadow-sm" onclick="toggleClassic(${item.id})">${classicBtnText}</button>
+                        <button class="btn btn-sm btn-outline-danger w-100 fw-bold shadow-sm" onclick="deleteFeedback(${item.id})">🗑️ 刪除</button>
+                    </td>`;
+                }
+
+                tr.innerHTML = trHTML;
+                tbody.appendChild(tr);
+            });
+
+            // 3. 讀取記憶體中的筆數設定 (治好失憶症！)
+            let savedPageSize = parseInt(localStorage.getItem('adminPreferredPageSize')) || 5;
+
+            // 建立表格
+            dataTableInstance = new simpleDatatables.DataTable(table, {
+                searchable: true, 
+                fixedHeight: false, 
+                perPage: savedPageSize, // 👈 載入記憶體數字
+                perPageSelect: [5, 10, 15, 20, 50], // 💡 確保下拉選單裡有這些選項讓套件匹配
+                labels: { placeholder: "搜尋...", perPage: "筆/頁", noRows: "找不到資料", info: "顯示 {start} 到 {end}，共 {rows} 筆" }
+            });
+
+            // 💡 100% 強制記憶法：直接監聽套件本身的分頁切換事件
+            dataTableInstance.on('datatable.perpage', function(perPage) {
+                localStorage.setItem('adminPreferredPageSize', perPage);
+                console.log("已記住分頁筆數：", perPage); // 讓你在開發者工具可以確認
+            });
+
+            // 💡 雙重保險：強制綁定網頁上的 select 元素 (防呆不同版本的套件)
+            setTimeout(() => {
+                const selector = document.querySelector('.dataTable-selector');
+                if (selector) {
+                    selector.addEventListener('change', function(e) {
+                        localStorage.setItem('adminPreferredPageSize', e.target.value);
+                    });
+                }
+            }, 300);
+            
+        } // 👈 這是 renderTable 函數的結束大括號
+
+        // ==========================================
+        // ⚡ 批次操作邏輯 (Batch Operations)
+        // ==========================================
+        
+        // 1. 切換編輯模式開關
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            
+            // 切換上方按鈕 UI
+            const actionBtns = document.getElementById('batch-action-buttons');
+            const toggleBtn = document.getElementById('toggle-edit-mode');
+            
+            if (actionBtns) actionBtns.style.display = isEditMode ? 'flex' : 'none';
+            if (toggleBtn) {
+                toggleBtn.innerHTML = isEditMode ? '✖ 取消批次操作' : '⚙️ 開啟批次操作';
+                toggleBtn.className = isEditMode ? 'btn btn-secondary btn-sm fw-bold shadow-sm' : 'btn btn-outline-secondary btn-sm fw-bold shadow-sm';
+            }
+
+            // 重新套用篩選並重繪表格 (這會自動觸發 renderTable 顯示/隱藏 Checkbox)
+            applyFilters(); 
+        }
+
+        // 2. 執行批次動作
+        async function batchAction(actionType) {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkedBoxes.length === 0) return alert("請至少在表格最左邊勾選一筆資料喔！");
+            
+            const idsToProcess = Array.from(checkedBoxes).map(box => box.value);
+            
+            if (actionType === 'delete') {
+                if (!confirm(`⚠️ 確定要一口氣刪除這 ${idsToProcess.length} 筆資料嗎？`)) return;
+                try {
+                    let successCount = 0;
+                    // 模擬批次發送 (若後端有批次 API 這裡可以改寫為單次發送)
+                    for (let id of idsToProcess) {
+                        const res = await fetch(`/api/admin/feedbacks/${id}`, { method: 'DELETE' });
+                        if ((await res.json()).success) successCount++;
+                    }
+                    alert(`成功將 ${successCount} 筆資料移至回收桶！`);
+                    toggleEditMode(); // 關閉編輯模式
+                    loadFeedbacks();  // 重新載入資料
+                } catch (err) { alert("執行發生錯誤：" + err); }
+
+            } else if (actionType === 'correct') {
+                const choice = prompt(`準備校正 ${idsToProcess.length} 筆資料。\n請輸入修正後的情緒代碼：\n1=Positive 2=Neutral 3=Negative`);
+                let newSentiment = choice === "1" ? "Positive" : choice === "2" ? "Neutral" : choice === "3" ? "Negative" : "";
+                if (!newSentiment) return;
+                try {
+                    let successCount = 0;
+                    for (let id of idsToProcess) {
+                        const res = await fetch(`/api/admin/feedbacks/${id}/sentiment`, {
+                            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sentiment: newSentiment })
+                        });
+                        if ((await res.json()).success) successCount++;
+                    }
+                    alert(`成功校正了 ${successCount} 筆資料的情緒！`);
+                    toggleEditMode();
+                    loadFeedbacks();
+                } catch (err) { alert("執行發生錯誤：" + err); }
+
+            } else if (actionType === 'classic') {
+                try {
+                    let successCount = 0;
+                    for (let id of idsToProcess) {
+                        const res = await fetch(`/api/admin/feedbacks/${id}/classic`, { method: 'PUT' });
+                        if ((await res.json()).success) successCount++;
+                    }
+                    alert(`成功切換了 ${successCount} 筆資料的經典狀態！`);
+                    toggleEditMode();
+                    loadFeedbacks();
+                } catch (err) { alert("執行發生錯誤：" + err); }
+            }
+        }
+
+        // ==========================================
+        // 📊 獨立函數：動態更新「類別圓餅圖」
+        // ==========================================
+        // ==========================================
+        // 📊 獨立函數：動態更新「類別圓餅圖」 (升級聚焦模式)
+        // ==========================================
+        function updateCategoryChart(chartData, subtitle = "") {
+            const dynamicCategoryCounts = {};
+            chartData.forEach(item => {
+                const c = item.category || '未分類';
+                dynamicCategoryCounts[c] = (dynamicCategoryCounts[c] || 0) + 1;
+            });
+
+            const ctxCategory = document.getElementById('categoryChart');
+            if (categoryChartInstance) categoryChartInstance.destroy();
+
+            // 提取標籤與對應數量
+            const categoryLabels = Object.keys(dynamicCategoryCounts);
+            const originalCatData = Object.values(dynamicCategoryCounts);
+            
+            // 準備顏色 (自動循環分配給不同類別)
+            const baseColors = ['#FFD166', '#06D6A0', '#118AB2', '#EF476F', '#073B4C', '#9D4EDD'];
+            const originalCatColors = categoryLabels.map((_, i) => baseColors[i % baseColors.length]);
+
+            let currentCatFilter = null; // 紀錄圓餅圖是否在聚焦模式
+
+            categoryChartInstance = new Chart(ctxCategory, {
+                type: 'pie', // 實心圓餅圖
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        data: [...originalCatData],
+                        backgroundColor: [...originalCatColors],
+                        borderWidth: 1, borderColor: '#ffffff'
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { position: 'right' },
+                        title: { display: true, text: subtitle ? `回饋類別佔比 ${subtitle}` : '回饋類別佔比 (全部情緒)' },
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 12 },
+                            formatter: (value, context) => {
+                                if (value === 0) return null;
+                                let sum = 0;
+                                context.chart.data.datasets[0].data.map(d => sum += d);
+                                let percentage = Math.round((value * 100 / sum));
+                                return percentage >= 5 ? percentage + "%" : null; // 小於 5% 的不顯示數字防擠
+                            }
+                        }
+                    },
+                    // 👇 魔法在這裡：圓餅圖專屬的防卡死點擊聚焦邏輯
+                    onClick: (event, elements) => {
+                        // 狀態 1：已經是聚焦狀態了，點擊圖表任意處，瞬間還原！
+                        if (currentCatFilter !== null) {
+                            currentCatFilter = null;
+                            categoryChartInstance.data.datasets[0].data = [...originalCatData];
+                            categoryChartInstance.data.datasets[0].backgroundColor = [...originalCatColors];
+                            categoryChartInstance.update();
+                            return; // 還原後結束動作
+                        }
+
+                        // 狀態 2：未聚焦狀態，點擊實體扇形區塊，進入聚焦模式
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            if (originalCatData[index] === 0) return; // 點到 0 的不理他
+
+                            currentCatFilter = categoryChartInstance.data.labels[index];
+                            
+                            // 產生聚焦資料：被點擊的留著，其他全部歸零，顏色變淺灰
+                            const newData = Array(originalCatData.length).fill(0);
+                            newData[index] = originalCatData[index];
+                            
+                            const newColors = Array(originalCatColors.length).fill('#e9ecef');
+                            newColors[index] = originalCatColors[index];
+
+                            categoryChartInstance.data.datasets[0].data = newData;
+                            categoryChartInstance.data.datasets[0].backgroundColor = newColors;
+                            categoryChartInstance.update();
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        // 📊 圖表全域狀態 (支援聯動與鎖定)
+        // ==========================================
+        let baseDashboardData = []; 
+        let currentFilters = { sentiment: null, category: null, department: null }; 
+        let lockedCharts = { sentiment: false, category: false, dept: false };
+
+        function renderCharts(data) {
+            baseDashboardData = data; 
+            currentFilters = { sentiment: null, category: null, department: null }; 
+            drawDashboardCharts(); 
+            drawTrendChart();      
+        }
+
+        function clearAllFilters() {
+            currentFilters = { sentiment: null, category: null, department: null };
+            drawDashboardCharts();
+        }
+
+        function toggleLock(chartName) {
+            lockedCharts[chartName] = !lockedCharts[chartName];
+            const btn = document.getElementById(`lock-btn-${chartName}`);
+            if (lockedCharts[chartName]) {
+                btn.innerText = '🔒';
+                btn.classList.replace('btn-light', 'btn-warning');
+            } else {
+                btn.innerText = '🔓';
+                btn.classList.replace('btn-warning', 'btn-light');
+            }
+            drawDashboardCharts('none'); // 切換鎖頭時，全局不播放動畫
+        }
+
+        // ==========================================
+        // 📊 核心聯動引擎 (平滑過渡動畫版)
+        // ==========================================
+        function drawDashboardCharts(animationMode = 'default') {
+            let filteredData = baseDashboardData;
+            let badgesHTML = [];
+
+            // 1. 全域篩選資料
+            if (currentFilters.sentiment) {
+                filteredData = filteredData.filter(i => i.sentiment === currentFilters.sentiment);
+                const sName = currentFilters.sentiment === 'Positive' ? '正面' : currentFilters.sentiment === 'Negative' ? '負面' : '中立';
+                const badgeColor = currentFilters.sentiment === 'Positive' ? 'success' : currentFilters.sentiment === 'Negative' ? 'danger' : 'secondary';
+                badgesHTML.push(`<span class="badge bg-${badgeColor} fs-6 shadow-sm me-1">情緒：${sName}</span>`);
+            }
+            if (currentFilters.category) {
+                filteredData = filteredData.filter(i => (i.category || '未分類') === currentFilters.category);
+                badgesHTML.push(`<span class="badge bg-info text-dark fs-6 shadow-sm me-1">類別：${currentFilters.category}</span>`);
+            }
+            if (currentFilters.department) {
+                filteredData = filteredData.filter(i => (i.department || '未提供') === currentFilters.department);
+                badgesHTML.push(`<span class="badge bg-dark text-white fs-6 shadow-sm me-1">部門：${currentFilters.department}</span>`);
+            }
+
+            const filterRow = document.getElementById('filter-status-row');
+            const filterBadges = document.getElementById('current-filter-badges');
+            if (badgesHTML.length > 0) {
+                if (filterRow) filterRow.style.display = 'block';
+                if (filterBadges) filterBadges.innerHTML = badgesHTML.join('');
+            } else {
+                if (filterRow) filterRow.style.display = 'none';
+            }
+
+            // 2. 更新 KPI 戰情卡
+            const kpiTotalEl = document.getElementById('kpi-total');
+            if (kpiTotalEl) {
+                kpiTotalEl.innerText = filteredData.length;
+                const posCount = filteredData.filter(item => item.sentiment === 'Positive').length;
+                document.getElementById('kpi-health').innerText = (filteredData.length > 0 ? Math.round((posCount / filteredData.length) * 100) : 0) + '%';
+                const negData = filteredData.filter(item => item.sentiment === 'Negative');
+                let topPain = "無痛點 🎉", topDept = "無異常 🎉";
+                if (negData.length > 0) {
+                    const pCounts = {}, dCounts = {};
+                    negData.forEach(item => { 
+                        pCounts[item.category || '未分類'] = (pCounts[item.category || '未分類'] || 0) + 1; 
+                        dCounts[item.department || '未提供'] = (dCounts[item.department || '未提供'] || 0) + 1;
+                    });
+                    topPain = Object.keys(pCounts).reduce((a, b) => pCounts[a] > pCounts[b] ? a : b);
+                    topDept = Object.keys(dCounts).reduce((a, b) => dCounts[a] > dCounts[b] ? a : b);
+                }
+                document.getElementById('kpi-painpoint').innerText = topPain;
+                document.getElementById('kpi-dept').innerText = topDept;
+            }
+
+            const pieDataLabelsConfig = {
+                color: '#ffffff', font: { weight: 'bold', size: 14 },
+                formatter: (value, context) => {
+                    if (value === 0) return null; 
+                    let sum = 0;
+                    context.chart.data.datasets[0].data.map(d => sum += d);
+                    let percentage = Math.round((value * 100 / sum));
+                    return percentage >= 5 ? percentage + "%" : null; 
+                }
+            };
+
+            // ========================================================
+            // 🔄 圖表 1：情緒甜甜圈 (平滑更新)
+            // ========================================================
+            let dataForSent = lockedCharts.sentiment ? baseDashboardData : filteredData;
+            const sentCounts = { 'Positive': 0, 'Neutral': 0, 'Negative': 0 };
+            if (currentFilters.sentiment && !lockedCharts.sentiment) {
+                sentCounts[currentFilters.sentiment] = dataForSent.length || 1;
+            } else {
+                dataForSent.forEach(i => sentCounts[i.sentiment]++);
+            }
+
+            const sentTitle = lockedCharts.sentiment ? '整體情緒分佈 🔒' : '整體情緒分佈';
+            const sentAnim = (animationMode === 'none' || lockedCharts.sentiment) ? false : undefined;
+
+            if (sentimentChartInstance) {
+                // 💡 存在的話，直接「更新資料」，不摧毀圖表！
+                sentimentChartInstance.data.datasets[0].data = Object.values(sentCounts);
+                sentimentChartInstance.options.plugins.title.text = sentTitle;
+                sentimentChartInstance.options.animation = sentAnim;
+                sentimentChartInstance.update();
+            } else {
+                // 不存在才第一次建立
+                sentimentChartInstance = new Chart(document.getElementById('sentimentChart'), {
+                    type: 'doughnut',
+                    data: { labels: ['Positive', 'Neutral', 'Negative'], datasets: [{ data: Object.values(sentCounts), backgroundColor: ['#198754', '#6c757d', '#dc3545'], borderWidth: 0 }] },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, animation: sentAnim,
+                        plugins: { 
+                            title: { display: true, text: sentTitle }, 
+                            legend: { position: 'bottom', labels: { generateLabels: (chart) => chart.data.labels.map((label, i) => ({ text: label === 'Positive' ? '正面' : label === 'Negative' ? '負面' : '中立', fillStyle: chart.data.datasets[0].backgroundColor[i], index: i })) } },
+                            datalabels: pieDataLabelsConfig
+                        },
+                        onClick: (event, elements) => {
+                            if (elements.length > 0 && sentimentChartInstance.data.datasets[0].data[elements[0].index] > 0) {
+                                const clicked = sentimentChartInstance.data.labels[elements[0].index];
+                                currentFilters.sentiment = (currentFilters.sentiment === clicked) ? null : clicked;
+                                drawDashboardCharts();
+                            } else if (elements.length === 0 && currentFilters.sentiment !== null) {
+                                currentFilters.sentiment = null; drawDashboardCharts();
+                            }
+                        }
+                    }
+                });
+            }
+
+            // ========================================================
+            // 🔄 圖表 2：類別圓餅圖 (平滑更新)
+            // ========================================================
+            let dataForCat = lockedCharts.category ? baseDashboardData : filteredData;
+            const allCategories = [...new Set(baseDashboardData.map(i => i.category || '未分類'))];
+            const catCounts = {}; allCategories.forEach(c => catCounts[c] = 0);
+            
+            if (currentFilters.category && !lockedCharts.category) {
+                catCounts[currentFilters.category] = dataForCat.length || 1;
+            } else {
+                dataForCat.forEach(i => catCounts[i.category || '未分類']++);
+            }
+
+            const catColorPalette = ['#FFD166', '#06D6A0', '#118AB2', '#EF476F', '#073B4C', '#9D4EDD', '#F78C6B', '#83D483'];
+            const catColors = Object.keys(catCounts).map((cat, i) => catColorPalette[i % catColorPalette.length]);
+            
+            const catTitle = lockedCharts.category ? '回饋類別佔比 🔒' : '回饋類別佔比';
+            const catAnim = (animationMode === 'none' || lockedCharts.category) ? false : undefined;
+
+            if (categoryChartInstance) {
+                // 💡 直接更新資料與顏色
+                categoryChartInstance.data.labels = Object.keys(catCounts);
+                categoryChartInstance.data.datasets[0].data = Object.values(catCounts);
+                categoryChartInstance.data.datasets[0].backgroundColor = catColors;
+                categoryChartInstance.options.plugins.title.text = catTitle;
+                categoryChartInstance.options.animation = catAnim;
+                categoryChartInstance.update();
+            } else {
+                categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
+                    type: 'pie',
+                    data: { labels: Object.keys(catCounts), datasets: [{ data: Object.values(catCounts), backgroundColor: catColors, borderWidth: 0 }] },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, animation: catAnim,
+                        plugins: { 
+                            title: { display: true, text: catTitle }, 
+                            legend: { position: 'right' },
+                            datalabels: pieDataLabelsConfig
+                        },
+                        onClick: (event, elements) => {
+                            if (elements.length > 0 && categoryChartInstance.data.datasets[0].data[elements[0].index] > 0) {
+                                const clicked = categoryChartInstance.data.labels[elements[0].index];
+                                currentFilters.category = (currentFilters.category === clicked) ? null : clicked;
+                                drawDashboardCharts();
+                            } else if (elements.length === 0 && currentFilters.category !== null) {
+                                currentFilters.category = null; drawDashboardCharts();
+                            }
+                        }
+                    }
+                });
+            }
+
+            // ========================================================
+            // 🔄 圖表 3：部門真實數量堆疊圖 (平滑更新)
+            // ========================================================
+            let dataForDept = lockedCharts.dept ? baseDashboardData : baseDashboardData.filter(i => {
+                let pass = true;
+                if (currentFilters.sentiment) pass = pass && (i.sentiment === currentFilters.sentiment);
+                if (currentFilters.category) pass = pass && ((i.category || '未分類') === currentFilters.category);
+                return pass;
+            });
+
+            const allDepts = [...new Set(baseDashboardData.map(i => i.department || '未提供'))].sort();
+            const deptSentCounts = {};
+            allDepts.forEach(d => deptSentCounts[d] = { 'Positive': 0, 'Neutral': 0, 'Negative': 0 });
+            dataForDept.forEach(i => deptSentCounts[i.department || '未提供'][i.sentiment]++);
+
+            const getDeptColor = (dept, baseColor) => {
+                if (lockedCharts.dept) return baseColor; 
+                if (!currentFilters.department) return baseColor;
+                if (currentFilters.department === dept) return baseColor;
+                return '#e2e3e5'; // 實體灰色
+            };
+
+            const deptTitle = lockedCharts.dept ? '各部門回饋數量 🔒' : '各部門回饋數量';
+            const deptAnim = (animationMode === 'none' || lockedCharts.dept) ? false : undefined;
+
+            if (deptChartInstance) {
+                // 💡 分別更新三種情緒的長條圖高度與顏色
+                deptChartInstance.data.labels = allDepts;
+                
+                deptChartInstance.data.datasets[0].data = allDepts.map(d => deptSentCounts[d].Positive);
+                deptChartInstance.data.datasets[0].backgroundColor = allDepts.map(d => getDeptColor(d, '#198754'));
+                
+                deptChartInstance.data.datasets[1].data = allDepts.map(d => deptSentCounts[d].Neutral);
+                deptChartInstance.data.datasets[1].backgroundColor = allDepts.map(d => getDeptColor(d, '#6c757d'));
+                
+                deptChartInstance.data.datasets[2].data = allDepts.map(d => deptSentCounts[d].Negative);
+                deptChartInstance.data.datasets[2].backgroundColor = allDepts.map(d => getDeptColor(d, '#dc3545'));
+
+                deptChartInstance.options.plugins.title.text = deptTitle;
+                deptChartInstance.options.animation = deptAnim;
+                deptChartInstance.update();
+            } else {
+                deptChartInstance = new Chart(document.getElementById('deptChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: allDepts,
+                        datasets: [
+                            { label: '正面', backgroundColor: allDepts.map(d => getDeptColor(d, '#198754')), data: allDepts.map(d => deptSentCounts[d].Positive) },
+                            { label: '中立', backgroundColor: allDepts.map(d => getDeptColor(d, '#6c757d')), data: allDepts.map(d => deptSentCounts[d].Neutral) },
+                            { label: '負面', backgroundColor: allDepts.map(d => getDeptColor(d, '#dc3545')), data: allDepts.map(d => deptSentCounts[d].Negative) }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, animation: deptAnim,
+                        plugins: { 
+                            title: { display: true, text: deptTitle },
+                            datalabels: { color: '#ffffff', font: { weight: 'bold', size: 12 }, formatter: (value) => value === 0 ? null : value },
+                            tooltip: { callbacks: { label: (context) => {
+                                const count = context.raw; if (count === 0) return null;
+                                let total = 0; context.chart.data.datasets.forEach(ds => total += ds.data[context.dataIndex]);
+                                return `${context.dataset.label}: ${count} 筆 (${Math.round((count / total) * 100)}%)`;
+                            }}}
+                        },
+                        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } },
+                        onClick: (event, elements) => {
+                            if (elements.length > 0) {
+                                const clickedDept = deptChartInstance.data.labels[elements[0].index];
+                                currentFilters.department = (currentFilters.department === clickedDept) ? null : clickedDept;
+                                drawDashboardCharts();
+                            } else if (elements.length === 0 && currentFilters.department !== null) {
+                                currentFilters.department = null; drawDashboardCharts();
+                            }
+                        }
+                    }
+                });
+            }
+
+            drawHeatmap(filteredData);
+            drawWordCloud(filteredData); 
+        }
+
+        // ----------------------------------------------------
+        // 📈 圖表 4：獨立的走勢圖 (強制補齊空缺日期，解決 X 軸距離失真)
+        // ----------------------------------------------------
+        function drawTrendChart() {
+            const startDateVal = document.getElementById('trend-start-date') ? document.getElementById('trend-start-date').value : '';
+            const endDateVal = document.getElementById('trend-end-date') ? document.getElementById('trend-end-date').value : '';
+
+            // 1. 從真實資料中抓出所有日期，作為沒選日期時的防呆備用
+            const validDates = baseDashboardData.filter(i => i.created_at).map(i => new Date(i.created_at.split(' ')[0]));
+            
+            let minDateObj = startDateVal ? new Date(startDateVal) : null;
+            let maxDateObj = endDateVal ? new Date(endDateVal) : null;
+
+            if (validDates.length > 0) {
+                if (!minDateObj) minDateObj = new Date(Math.min(...validDates));
+                if (!maxDateObj) maxDateObj = new Date(Math.max(...validDates));
+            } else {
+                if (!maxDateObj) maxDateObj = new Date();
+                if (!minDateObj) { minDateObj = new Date(); minDateObj.setDate(maxDateObj.getDate() - 6); }
+            }
+
+            // 防呆：去除時分秒干擾，對齊午夜
+            minDateObj.setHours(0, 0, 0, 0);
+            maxDateObj.setHours(23, 59, 59, 999);
+
+            const dateSentimentCounts = {}; 
+
+            // 🌟 核心魔法：生出每一天的實體格子，並塞入 0！
+            let currentD = new Date(minDateObj);
+            let limit = 0; // 防止無限迴圈當機
+            while (currentD <= maxDateObj && limit < 365) {
+                const yyyy = currentD.getFullYear();
+                const mm = String(currentD.getMonth() + 1).padStart(2, '0');
+                const dd = String(currentD.getDate()).padStart(2, '0');
+                const dateStr = `${yyyy}/${mm}/${dd}`;
+                
+                // 強制把這天標記為 0
+                dateSentimentCounts[dateStr] = { 'Positive': 0, 'Neutral': 0, 'Negative': 0 };
+                
+                // 加一天
+                currentD.setDate(currentD.getDate() + 1);
+                limit++;
+            }
+
+            // 🌟 將實際有資料的筆數填進對應的格子裡
+            baseDashboardData.forEach(item => {
+                if (item.created_at) {
+                    const dateStr = item.created_at.split(' ')[0]; 
+                    if (dateSentimentCounts[dateStr]) {
+                        dateSentimentCounts[dateStr][item.sentiment]++;
+                    }
+                }
+            });
+
+            const ctxTrend = document.getElementById('trendChart');
+            if (!ctxTrend) return; 
+            if (trendChartInstance) trendChartInstance.destroy();
+            
+            // 這時候 Object.keys 抓出來的日期，絕對是「連續無中斷」的每一天！
+            const sortedDates = Object.keys(dateSentimentCounts).sort();
+
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: sortedDates, // X 軸現在會有一整排連續日期
+                    datasets: [
+                        { label: '正面', borderColor: '#198754', backgroundColor: '#198754', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Positive) },
+                        { label: '中立', borderColor: '#6c757d', backgroundColor: '#6c757d', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Neutral) },
+                        { label: '負面', borderColor: '#dc3545', backgroundColor: '#dc3545', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Negative) }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { datalabels: { display: false } } 
+                }
+            });
+        }
+        // ----------------------------------------------------
+        // 📈 圖表 4：獨立的走勢圖 (自動補齊空缺日期填 0)
+        // ----------------------------------------------------
+        function drawTrendChart() {
+            const startDateVal = document.getElementById('trend-start-date') ? document.getElementById('trend-start-date').value : '';
+            const endDateVal = document.getElementById('trend-end-date') ? document.getElementById('trend-end-date').value : '';
+
+            const dateSentimentCounts = {}; 
+            
+            // --- 💡 步驟 1：算出要畫的「起始」與「結束」日期 ---
+            let minDate, maxDate;
+            
+            if (startDateVal) minDate = new Date(startDateVal);
+            if (endDateVal) maxDate = new Date(endDateVal);
+
+            // 如果使用者沒有選日期，就用資料庫裡的最早/最晚日期
+            if (!minDate || !maxDate) {
+                // 找出資料中所有的時間
+                const allDates = baseDashboardData.filter(i => i.created_at).map(i => new Date(i.created_at.split(' ')[0]));
+                if (allDates.length > 0) {
+                    if (!minDate) minDate = new Date(Math.min.apply(null, allDates));
+                    if (!maxDate) maxDate = new Date(Math.max.apply(null, allDates));
+                } else {
+                    // 如果連一筆資料都沒有，預設畫最近 7 天
+                    if (!maxDate) maxDate = new Date();
+                    if (!minDate) { minDate = new Date(); minDate.setDate(maxDate.getDate() - 6); }
+                }
+            }
+
+            // --- 💡 步驟 2：把起始到結束的「每一天」都強制生出來，並預設為 0 ---
+            minDate.setHours(0, 0, 0, 0);
+            maxDate.setHours(23, 59, 59, 999);
+            
+            for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+                // 將日期格式化為 YYYY/MM/DD (配合你後端 DATE_FORMAT 的格式)
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const dateStr = `${yyyy}/${mm}/${dd}`;
+                
+                dateSentimentCounts[dateStr] = { 'Positive': 0, 'Neutral': 0, 'Negative': 0 };
+            }
+
+            // --- 💡 步驟 3：把真實的資料填進去 ---
+            baseDashboardData.forEach(item => {
+                if (item.created_at) {
+                    const itemDate = new Date(item.created_at);
+                    
+                    // 檢查這筆資料有沒有在我們畫的區間內
+                    if (itemDate >= minDate && itemDate <= maxDate) {
+                        const yyyy = itemDate.getFullYear();
+                        const mm = String(itemDate.getMonth() + 1).padStart(2, '0');
+                        const dd = String(itemDate.getDate()).padStart(2, '0');
+                        const dateStr = `${yyyy}/${mm}/${dd}`;
+                        
+                        // 加進對應的日期與情緒裡
+                        if (dateSentimentCounts[dateStr]) {
+                            dateSentimentCounts[dateStr][item.sentiment]++;
+                        }
+                    }
+                }
+            });
+
+            // --- 💡 步驟 4：畫圖 ---
+            const ctxTrend = document.getElementById('trendChart');
+            if (!ctxTrend) return; 
+            if (trendChartInstance) trendChartInstance.destroy();
+            
+            // 因為我們前面已經按順序把日期生出來了，直接抓出來排序即可
+            const sortedDates = Object.keys(dateSentimentCounts).sort();
+
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [
+                        { label: '正面', borderColor: '#198754', backgroundColor: '#198754', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Positive) },
+                        { label: '中立', borderColor: '#6c757d', backgroundColor: '#6c757d', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Neutral) },
+                        { label: '負面', borderColor: '#dc3545', backgroundColor: '#dc3545', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Negative) }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { datalabels: { display: false } } 
+                }
+            });
+        }
+
+        // ----------------------------------------------------
+        // 📈 圖表 4：獨立的走勢圖 (強制補齊空缺日期填 0，解決 X 軸距離問題)
+        // ----------------------------------------------------
+        function drawTrendChart() {
+            const startDateVal = document.getElementById('trend-start-date') ? document.getElementById('trend-start-date').value : '';
+            const endDateVal = document.getElementById('trend-end-date') ? document.getElementById('trend-end-date').value : '';
+
+            // 1. 抓出資料庫裡所有的日期，用來決定要畫多長
+            const allDateStrings = baseDashboardData.filter(i => i.created_at).map(i => i.created_at.split(' ')[0]);
+            let minDateObj = null;
+            let maxDateObj = null;
+
+            // 決定起點 (使用者有選就用選的，沒選就抓資料庫最早的那天)
+            if (startDateVal) {
+                minDateObj = new Date(startDateVal);
+            } else if (allDateStrings.length > 0) {
+                const timestamps = allDateStrings.map(d => new Date(d).getTime());
+                minDateObj = new Date(Math.min(...timestamps));
+            } else {
+                minDateObj = new Date();
+                minDateObj.setDate(minDateObj.getDate() - 6); // 完全沒資料時，預設給 7 天
+            }
+
+            // 決定終點 (使用者有選就用選的，沒選就抓資料庫最晚的那天)
+            if (endDateVal) {
+                maxDateObj = new Date(endDateVal);
+            } else if (allDateStrings.length > 0) {
+                const timestamps = allDateStrings.map(d => new Date(d).getTime());
+                maxDateObj = new Date(Math.max(...timestamps));
+            } else {
+                maxDateObj = new Date();
+            }
+
+            // 確保涵蓋整天
+            minDateObj.setHours(0, 0, 0, 0);
+            maxDateObj.setHours(23, 59, 59, 999);
+
+            const dateSentimentCounts = {}; 
+
+            // 🌟 核心魔法：用迴圈把起迄區間的「每一天」都強制產生出來，並塞入 0！
+            let loopGuard = 0;
+            for (let d = new Date(minDateObj); d <= maxDateObj; d.setDate(d.getDate() + 1)) {
+                loopGuard++;
+                if (loopGuard > 365) break; // 防呆機制：一次最多畫一年，避免瀏覽器當機
+
+                // 將時間轉成 YYYY/MM/DD 的格式 (與你後端傳來的格式一致)
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const dateStr = `${yyyy}/${mm}/${dd}`;
+                
+                // 強制把這天標記為 0
+                dateSentimentCounts[dateStr] = { 'Positive': 0, 'Neutral': 0, 'Negative': 0 };
+            }
+
+            // 🌟 把實際有資料的天數填進字典裡
+            baseDashboardData.forEach(item => {
+                if (item.created_at) {
+                    const dateStr = item.created_at.split(' ')[0]; 
+                    // 如果字典裡有這一天 (代表在我們篩選的畫布區間內)
+                    if (dateSentimentCounts[dateStr]) {
+                        dateSentimentCounts[dateStr][item.sentiment]++;
+                    }
+                }
+            });
+
+            // 開始畫圖
+            const ctxTrend = document.getElementById('trendChart');
+            if (!ctxTrend) return; 
+            if (trendChartInstance) trendChartInstance.destroy();
+            
+            // 這時候 Object.keys 抓出來的日期，絕對是連續無中斷的每一天！
+            const sortedDates = Object.keys(dateSentimentCounts).sort();
+
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [
+                        { label: '正面', borderColor: '#198754', backgroundColor: '#198754', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Positive) },
+                        { label: '中立', borderColor: '#6c757d', backgroundColor: '#6c757d', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Neutral) },
+                        { label: '負面', borderColor: '#dc3545', backgroundColor: '#dc3545', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Negative) }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { datalabels: { display: false } } 
+                }
+            });
+        }
+
+        // ==========================================
+        // ☁️ 繪製原汁原味的動態文字雲 (豐富字庫版)
+        // ==========================================
+        function drawWordCloud(data) {
+            const container = document.getElementById('wordcloud-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const wordCounts = {};
+            let hasRealKeywords = false;
+
+            // 1. 抓出真實資料的關鍵字 (支援逗號分隔)
+            data.forEach(item => {
+                if (item.keywords) {
+                    let kwArray = typeof item.keywords === 'string' ? item.keywords.split(',').map(k => k.trim()) : item.keywords;
+                    if (Array.isArray(kwArray) && kwArray.length > 0 && kwArray[0] !== "") {
+                        hasRealKeywords = true;
+                        kwArray.forEach(w => { wordCounts[w] = (wordCounts[w] || 0) + 1; });
+                    }
+                }
+            });
+
+            // 2. 💡 原汁原味的豐富詞庫：如果真實資料沒有關鍵字，就依照情緒塞入大量模擬詞！
+            if (!hasRealKeywords) {
+                const mockWords = {
+                    'Positive': ['效率高', '神隊友', '氣氛佳', '福利好', '獎金', '溝通順暢', '成長', '讚', '創新', '有活力'],
+                    'Negative': ['大當機', '常加班', '系統慢', '流程冗長', '人手不足', '薪水', '主管', '卡頓', '壓力大', '沒方向'],
+                    'Neutral': ['例行會議', '打卡', '報表', '出差', '座位', '午餐', '設備', '空調', '請假', '流程']
+                };
+                // 根據畫面上的資料筆數，按比例塞入假詞，資料越多字就越多！
+                data.forEach(item => {
+                    const words = mockWords[item.sentiment] || mockWords['Neutral'];
+                    for(let i=0; i<2; i++) {
+                        const randomWord = words[Math.floor(Math.random() * words.length)];
+                        wordCounts[randomWord] = (wordCounts[randomWord] || 0) + 1;
+                    }
+                });
+            }
+
+            // 3. 將字詞轉換成陣列並排序，取前 30 名
+            const sortedWords = Object.keys(wordCounts)
+                .map(w => ({ text: w, count: wordCounts[w] }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 30);
+
+            if (sortedWords.length === 0) {
+                container.innerHTML = '<span class="text-muted">目前沒有足夠的文字可以產生文字雲</span>';
+                return;
+            }
+
+            const maxCount = sortedWords[0].count;
+            const minCount = sortedWords[sortedWords.length - 1].count || 1;
+
+            // 原汁原味的配色
+            const colors = ['#118AB2', '#EF476F', '#073B4C', '#06D6A0', '#FFD166', '#9D4EDD', '#F78C6B'];
+
+            // 4. 打亂順序，動態計算大小，並加入懸浮特效
+            sortedWords.sort(() => Math.random() - 0.5).forEach(wordObj => {
+                
+                // 💡 無級別縮放：依據出現次數，字體大小在 16px ~ 50px 之間平滑變動
+                let fontSize = 16;
+                if (maxCount > minCount) {
+                    fontSize = 16 + ((wordObj.count - minCount) / (maxCount - minCount)) * 34;
+                }
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                const span = document.createElement('span');
+                span.innerText = wordObj.text;
+                span.style.fontSize = `${fontSize}px`;
+                span.style.color = color;
+                span.style.fontWeight = fontSize > 24 ? 'bold' : '500';
+                span.style.transition = "all 0.2s ease-in-out";
+                span.style.cursor = "pointer";
+                span.style.userSelect = "none";
+                span.style.padding = "5px"; // 加上一點留白避免太擠
+                
+                // 🌟 超炫的滑鼠懸浮放大特效
+                span.onmouseover = () => span.style.transform = "scale(1.3) translateY(-3px)";
+                span.onmouseout = () => span.style.transform = "scale(1) translateY(0)";
+                span.title = `出現次數: ${wordObj.count} 次`;
+
+                container.appendChild(span);
+            });
+
+            // 更新標題 (加入鎖定狀態判斷)
+            const wcTitle = document.getElementById('wordcloud-title');
+            if (wcTitle) {
+                let titleText = '☁️ 熱門關鍵字分析';
+                if (currentFilters.sentiment || currentFilters.category || currentFilters.department) titleText += ' (聚焦模式)';
+                wcTitle.innerText = titleText;
+            }
+        }
+        // ==========================================
+        // 🌈 繪製動態熱力圖 (升級適應多重篩選)
+        // ==========================================
+        function drawHeatmap(data) {
+            // 熱力圖依賴「情緒」來變色，如果有選定情緒，就用選定的；沒選定就預設看負面！
+            let targetSentiment = currentFilters.sentiment || 'Negative'; 
+            let baseColor = targetSentiment === 'Positive' ? '25, 135, 84' : targetSentiment === 'Neutral' ? '108, 117, 125' : '220, 53, 69';
+            let heatTitle = targetSentiment === 'Positive' ? '🌟 跨部門亮點熱力圖' : targetSentiment === 'Neutral' ? '💬 跨部門分佈熱力圖' : '🔥 跨部門痛點熱力圖';
+
+            // 把類別過濾的資訊也加到標題上
+            if (currentFilters.category) heatTitle += ` (聚焦類別: ${currentFilters.category})`;
+
+            const heatTitleEl = document.getElementById('heatmap-title');
+            if (heatTitleEl) heatTitleEl.innerText = heatTitle;
+
+            // 熱力圖必須只看單一情緒才有意義 (不然紅綠灰會混在一起)
+            const targetData = data.filter(item => item.sentiment === targetSentiment);
+            
+            const depts = [...new Set(baseDashboardData.map(i => i.department || '未提供'))].sort();
+            const cats = [...new Set(baseDashboardData.map(i => i.category || '未分類'))].sort();
+            const matrix = {};
+            let maxCount = 0; 
+
+            depts.forEach(d => { matrix[d] = {}; cats.forEach(c => { matrix[d][c] = 0; }); });
+            targetData.forEach(item => {
+                const d = item.department || '未提供';
+                const c = item.category || '未分類';
+                if(matrix[d] && matrix[d][c] !== undefined) {
+                    matrix[d][c]++;
+                    if(matrix[d][c] > maxCount) maxCount = matrix[d][c];
+                }
+            });
+
+            const thead = document.getElementById('heatmap-thead');
+            const tbody = document.getElementById('heatmap-tbody');
+            if(!thead || !tbody) return;
+
+            let trHead = '<tr><th class="bg-light text-center align-middle border-end" style="width: 150px;">部門 \\ 類別</th>';
+            cats.forEach(c => { trHead += `<th class="bg-light text-center align-middle">${c}</th>`; });
+            thead.innerHTML = trHead + '</tr>';
+
+            tbody.innerHTML = '';
+            depts.forEach(d => {
+                let tr = `<tr><td class="bg-light fw-bold align-middle border-end text-center">${d}</td>`;
+                cats.forEach(c => {
+                    const count = matrix[d][c];
+                    let alpha = 0, bgColor = 'transparent', textColor = 'text-muted', text = '-';
+                    if (count > 0) {
+                        alpha = 0.15 + (0.85 * (count / maxCount));
+                        bgColor = `rgba(${baseColor}, ${alpha})`; 
+                        textColor = alpha > 0.5 ? 'text-white' : 'text-dark'; 
+                        text = count; 
+                    }
+                    const sName = targetSentiment === 'Positive' ? '正面' : targetSentiment === 'Negative' ? '負面' : '中立';
+                    tr += `<td class="text-center align-middle ${textColor}" style="background-color: ${bgColor}; transition: 0.3s; cursor: crosshair;" title="【${d}】在【${c}】共有 ${count} 筆${sName}回饋">${text}</td>`;
+                });
+                tbody.innerHTML += tr + '</tr>';
+            });
+        }
+
+        // ----------------------------------------------------
+        // 📈 圖表 4：獨立的走勢圖 (帶專屬日期過濾)
+        // ----------------------------------------------------
+        function drawTrendChart() {
+            const startDateVal = document.getElementById('trend-start-date') ? document.getElementById('trend-start-date').value : '';
+            const endDateVal = document.getElementById('trend-end-date') ? document.getElementById('trend-end-date').value : '';
+
+            const dateSentimentCounts = {}; 
+            
+            baseDashboardData.forEach(item => {
+                let passTime = true;
+                if (item.created_at) {
+                    const itemDate = new Date(item.created_at);
+                    if (startDateVal) {
+                        const sd = new Date(startDateVal); sd.setHours(0,0,0,0);
+                        passTime = passTime && (itemDate >= sd);
+                    }
+                    if (endDateVal) {
+                        const ed = new Date(endDateVal); ed.setHours(23,59,59,999);
+                        passTime = passTime && (itemDate <= ed);
+                    }
+
+                    if (passTime) {
+                        const dateStr = item.created_at.split(' ')[0]; 
+                        if (!dateSentimentCounts[dateStr]) dateSentimentCounts[dateStr] = { 'Positive': 0, 'Neutral': 0, 'Negative': 0 };
+                        dateSentimentCounts[dateStr][item.sentiment]++;
+                    }
+                }
+            });
+
+            const ctxTrend = document.getElementById('trendChart');
+            if (!ctxTrend) return; 
+            if (trendChartInstance) trendChartInstance.destroy();
+            
+            const sortedDates = Object.keys(dateSentimentCounts).sort();
+
+            trendChartInstance = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [
+                        { label: '正面', borderColor: '#198754', backgroundColor: '#198754', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Positive) },
+                        { label: '中立', borderColor: '#6c757d', backgroundColor: '#6c757d', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Neutral) },
+                        { label: '負面', borderColor: '#dc3545', backgroundColor: '#dc3545', tension: 0.3, data: sortedDates.map(date => dateSentimentCounts[date].Negative) }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { datalabels: { display: false } } 
+                }
+            });
+        }
+        // ==========================================
+        // ⚡ API 互動函數 
+        // ==========================================
+        async function deleteFeedback(id) {
+            if (!confirm("確定要將這筆回饋移至垃圾桶嗎？（系統將保留 3 天）")) return;
+            try {
+                const res = await fetch(`/api/admin/feedbacks/${id}`, { method: 'DELETE' });
+                if ((await res.json()).success) await loadFeedbacks(); 
+            } catch (err) { alert("網路錯誤：" + err); }
+        }
+
+        async function toggleClassic(id) {
+            try {
+                const res = await fetch(`/api/admin/feedbacks/${id}/classic`, { method: 'PUT' });
+                if ((await res.json()).success) await loadFeedbacks(); 
+            } catch (err) { alert("網路錯誤：", err); }
+        }
+
+        async function correctSentiment(id) {
+            const choice = prompt("修正後的情緒代碼：\n1=Positive 2=Neutral 3=Negative");
+            let newSentiment = choice === "1" ? "Positive" : choice === "2" ? "Neutral" : choice === "3" ? "Negative" : "";
+            if (!newSentiment) return; 
+
+            try {
+                const res = await fetch(`/api/admin/feedbacks/${id}/sentiment`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sentiment: newSentiment })
+                });
+                if ((await res.json()).success) await loadFeedbacks(); 
+            } catch (err) { alert("網路錯誤：", err); }
+        }
+
+        // ==========================================
+        // ⚙️ AI 規則設定 API (支援新增與修改)
+        // ==========================================
+        let editingRuleId = null; // 紀錄目前正在修改哪個 ID，如果是 null 代表是新增模式
+
+        async function loadRules() {
+            try {
+                const res = await fetch('/api/admin/rules');
+                const result = await res.json();
+                if (result.success) {
+                    const tbody = document.getElementById('rulesTableBody');
+                    if (!tbody) return; 
+                    tbody.innerHTML = '';
+                    result.data.forEach(r => {
+                        // 🌟 把修改按鈕加進每一列！
+                        tbody.innerHTML += `<tr>
+                            <td class="align-middle"><span class="badge bg-dark fs-6 px-3 py-2">${r.keyword}</span></td>
+                            <td class="align-middle"><span class="badge bg-secondary">${r.suggested_sentiment}</span></td>
+                            <td class="align-middle">${r.suggested_category || '<span class="text-muted">交給AI判斷</span>'}</td>
+                            <td class="align-middle">
+                                <button class="btn btn-sm btn-outline-primary fw-bold shadow-sm me-1" onclick="editRule(${r.id}, '${r.keyword}', '${r.suggested_sentiment}', '${r.suggested_category || ''}')">✏️ 修改</button>
+                                <button class="btn btn-sm btn-outline-danger fw-bold shadow-sm" onclick="deleteRule(${r.id})">🗑️ 刪除</button>
+                            </td>
+                        </tr>`;
+                    });
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        // 點擊「修改」按鈕時，把資料填入上方的輸入框
+        function editRule(id, keyword, sentiment, category) {
+            editingRuleId = id; // 設定目前為「修改模式」
+            document.getElementById('new-rule-keyword').value = keyword;
+            document.getElementById('new-rule-sentiment').value = sentiment;
+            document.getElementById('new-rule-category').value = category;
+
+            // 改變按鈕外觀
+            const submitBtn = document.getElementById('rule-submit-btn');
+            submitBtn.innerHTML = '💾 儲存修改';
+            submitBtn.classList.replace('btn-primary', 'btn-success');
+            document.getElementById('rule-cancel-btn').classList.remove('d-none');
+        }
+
+        // 取消修改，恢復新增模式
+        function cancelEditRule() {
+            editingRuleId = null;
+            document.getElementById('new-rule-keyword').value = '';
+            document.getElementById('new-rule-sentiment').value = 'Negative'; // 預設值
+            document.getElementById('new-rule-category').value = '';
+
+            // 恢復按鈕外觀
+            const submitBtn = document.getElementById('rule-submit-btn');
+            submitBtn.innerHTML = '➕ 新增';
+            submitBtn.classList.replace('btn-success', 'btn-primary');
+            document.getElementById('rule-cancel-btn').classList.add('d-none');
+        }
+
+        // 儲存規則 (自動判斷是「新增」還是「修改」)
+        async function saveRule() {
+            const keyword = document.getElementById('new-rule-keyword').value;
+            const sentiment = document.getElementById('new-rule-sentiment').value;
+            const category = document.getElementById('new-rule-category').value;
+            if (!keyword.trim()) return alert("請輸入關鍵字！");
+
+            try {
+                // 💡 魔法：如果有 editingRuleId，就是打 PUT API 更新；否則打 POST API 新增
+                const method = editingRuleId ? 'PUT' : 'POST';
+                const url = editingRuleId ? `/api/admin/rules/${editingRuleId}` : '/api/admin/rules';
+
+                const res = await fetch(url, {
+                    method: method, 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword, sentiment, category })
+                });
+                
+                if ((await res.json()).success) {
+                    alert(editingRuleId ? "✅ 修改成功！" : "✅ 新增成功！");
+                    cancelEditRule(); // 存檔後清除輸入框狀態
+                    loadRules();      // 重新載入表格
+                }
+            } catch (err) { alert("網路錯誤：" + err); }
+        }
+
+        async function deleteRule(id) {
+            if (!confirm("確定要刪除這筆規則嗎？")) return;
+            try {
+                const res = await fetch(`/api/admin/rules/${id}`, { method: 'DELETE' });
+                if ((await res.json()).success) loadRules(); 
+            } catch (err) { console.error(err); }
+        }
+
+        // ==========================================
+        // 🗑️ 資源回收桶 API 邏輯
+        // ==========================================
+        async function loadRecycleBin() {
+            try {
+                const res = await fetch('/api/admin/recycle');
+                const result = await res.json();
+                if (result.success) {
+                    const tbody = document.getElementById('recycleTableBody');
+                    if (!tbody) return; 
+                    if (result.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">回收桶目前是空的</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = '';
+                    result.data.forEach(item => {
+                        let bColor = item.sentiment === 'Negative' ? 'bg-danger' : item.sentiment === 'Positive' ? 'bg-success' : 'bg-secondary';
+                        tbody.innerHTML += `<tr>
+                            <td><span class="badge bg-danger mb-1">刪除於: ${item.deleted_at}</span><br><small class="text-muted">原發表: ${item.created_at}</small><br><span class="badge bg-info text-dark mt-1">${item.department || '未提供'}</span></td>
+                            <td><p class="mb-0 text-muted" style="text-decoration: line-through;">${item.feedback}</p></td>
+                            <td><span class="badge ${bColor}">${item.sentiment}</span><br><span class="badge bg-light text-dark border mt-1">${item.category}</span></td>
+                            <td><button class="btn btn-sm btn-outline-success mb-1 w-100" onclick="restoreFeedback(${item.id})">♻️ 復原</button><button class="btn btn-sm btn-danger w-100" onclick="hardDeleteFeedback(${item.id})">❌ 永久刪除</button></td>
+                        </tr>`;
+                    });
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function restoreFeedback(id) {
+            if (!confirm("確定要復原這筆資料嗎？")) return;
+            try {
+                const res = await fetch(`/api/admin/recycle/${id}/restore`, { method: 'PUT' });
+                if ((await res.json()).success) { loadRecycleBin(); loadFeedbacks(); }
+            } catch (err) { alert(err); }
+        }
+
+        async function hardDeleteFeedback(id) {
+            if (!confirm("⚠️ 警告：這將會永久銷毀資料，無法復原！確定要繼續嗎？")) return;
+            try {
+                const res = await fetch(`/api/admin/recycle/${id}`, { method: 'DELETE' });
+                if ((await res.json()).success) loadRecycleBin(); 
+            } catch (err) { alert(err); }
+        }
+        // ==========================================
+        // ✋ 啟動圖表隨意拖曳排序功能
+        // ==========================================
+        // 1. 告訴程式大箱子在哪裡
+        const chartContainer = document.getElementById('sortable-charts');
+        
+        // 2. 確定有找到大箱子，才啟動魔法
+        if (chartContainer) {
+            new Sortable(chartContainer, {
+                animation: 200,          // 拖曳時，其他盒子讓開的動畫速度 (200毫秒，看起來很絲滑)
+                ghostClass: 'sortable-ghost', // 👉 換成我們剛剛寫好的乾淨虛線框
+                handle: '.drag-handle'        // 👉 指定只有按住那個 SVG 圖示時，才可以拖曳！
+            });
+        }
+    </script>
+</body>
+</html>

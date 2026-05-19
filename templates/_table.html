@@ -1,0 +1,100 @@
+<h2 class="fw-bold mb-4">回饋管理</h2>
+ 
+<!-- ========================================== -->
+<!-- ⚙️ 批次操作控制面板 -->
+<!-- ========================================== -->
+<div class="d-flex justify-content-between align-items-end mb-3 mt-2">
+    <h5 class="fw-bold mb-0 text-secondary">📋 員工回饋明細</h5>
+    
+    <div class="d-flex gap-2">
+        <!-- 開啟編輯模式後才會顯示的按鈕群 (預設隱藏) -->
+        <div id="batch-action-buttons" style="display: none;" class="gap-2">
+            <button class="btn btn-warning btn-sm fw-bold shadow-sm" onclick="batchAction('correct')">✏️ 批次校正情緒</button>
+            <button class="btn btn-success btn-sm fw-bold shadow-sm text-white" onclick="batchAction('classic')">⭐ 批次切換經典</button>
+            <button class="btn btn-danger btn-sm fw-bold shadow-sm" onclick="batchAction('delete')">🗑️ 批次刪除</button>
+        </div>
+
+        <!-- 🌟 新增：時間排序下拉選單 (只要改變就觸發 applyFilters) -->
+        <select id="sort-order" class="form-select form-select-sm shadow-sm" style="width: auto; font-weight: bold;" onchange="applyFilters()">
+            <option value="desc">⏳ 時間：新到舊 (最新)</option>
+            <option value="asc">⌛ 時間：舊到新 (最舊)</option>
+        </select>
+        
+        <!-- 切換模式開關 -->
+        <button class="btn btn-outline-secondary btn-sm fw-bold shadow-sm" id="toggle-edit-mode" onclick="toggleEditMode()">
+            ⚙️ 開啟批次操作
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4 p-3 mb-4 bg-white sticky-filter">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small text-muted fw-bold">📅 自訂時間範圍</label>
+            <div class="d-flex align-items-center gap-2">
+                <input type="date" id="filter-start-date" class="form-control form-control-sm" onchange="applyFilters()">
+                <span class="text-muted small">至</span>
+                <input type="date" id="filter-end-date" class="form-control form-control-sm" onchange="applyFilters()">
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label small text-muted fw-bold">🏢 部門</label>
+            <select id="filter-dept" class="form-select form-select-sm" onchange="applyFilters()">
+                <option value="all">全部部門</option>
+                <option value="研發部">研發部</option>
+                <option value="業務部">業務部</option>
+                <option value="行銷部">行銷部</option>
+                <option value="行政人資部">行政人資部</option>
+                <option value="財務部">財務部</option>
+                <option value="客戶服務部">客戶服務部</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small text-muted fw-bold">🎭 判斷情緒</label>
+            <select id="filter-sentiment" class="form-select form-select-sm" onchange="applyFilters()">
+                <option value="all">全部情緒</option>
+                <option value="Negative">負面</option>
+                <option value="Positive">正面</option>
+                <option value="Neutral">中立</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small text-muted fw-bold">🏷️ 回饋類別</label>
+            <select id="filter-category" class="form-select form-select-sm" onchange="applyFilters()">
+                <option value="all">全部類別</option>
+                <option value="工作負載">工作負載</option>
+                <option value="人際關係與管理">人際關係與管理</option>
+                <option value="薪資福利">薪資福利</option>
+                <option value="硬體與環境">硬體與環境</option>
+                <option value="職涯發展">職涯發展</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small text-muted fw-bold">⭐ 教材狀態</label>
+            <select id="filter-classic" class="form-select form-select-sm" onchange="applyFilters()">
+                <option value="all">全部狀態</option>
+                <option value="true">僅顯示經典範例</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4 p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="feedbackTable">
+            <thead class="table-light">
+                <tr>
+                    <th width="15%">時間 / 部門</th>
+                    <th width="35%">員工原始回饋</th>
+                    <th width="35%">AI 診斷與思維鏈</th>
+                    <th width="15%">操作</th>
+                </tr>
+            </thead>
+            <tbody id="feedbackTableBody">
+                <tr><td colspan="4" class="text-center text-muted">資料載入中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
