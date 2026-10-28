@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        員工體驗洞察平台
+    </title>
+
+
+    <!-- Bootstrap -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- Simple Datatables -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css"
+        rel="stylesheet"
+        type="text/css"
+    >
+
+
+    <!-- Bootstrap Icons -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- Font -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;450;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- Admin Design System -->
+    <link
+        href="{{ url_for('static', filename='css/admin.css') }}"
+        rel="stylesheet"
+    >
+
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+    <!-- Chart Data Labels -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+
+    <!-- Word Cloud -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
+
+
+    <!-- Sortable -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+    <link href="{{ url_for('static', filename='css/workspace.css') }}" rel="stylesheet">
+</head>
+
+
+
+<body class="admin-app" data-start-tab="dashboard">
+
+
+    <!-- =====================================================
+         Sidebar
+         ===================================================== -->
+
+    {% include '_workspace.html' %}
+
+
+
+    <!-- =====================================================
+         回饋分析詳情 Modal
+         ===================================================== -->
+
+    <div
+        class="modal fade"
+        id="theoryAnalysisModal"
+        tabindex="-1"
+        aria-labelledby="theoryAnalysisModalLabel"
+        aria-hidden="true"
+    >
+
+        <div
+            class="
+                modal-dialog
+                modal-xl
+                modal-dialog-scrollable
+            "
+        >
+
+            <div class="modal-content">
+
+
+                <!-- Header -->
+
+                <div class="modal-header">
+
+                    <div>
+
+                        <h5
+                            class="modal-title"
+                            id="theoryAnalysisModalLabel"
+                        >
+                            回饋分析詳情
+                        </h5>
+
+
+                        <div class="small text-muted">
+
+                            情緒狀態、工作要求與資源綜合分析
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="關閉"
+                    ></button>
+
+                </div>
+
+
+
+                <!-- Body -->
+
+                <div class="modal-body">
+
+
+                    <!-- 原始回饋 -->
+
+                    <div class="theory-card mb-3">
+
+                        <div class="theory-card-title">
+                            員工原始回饋
+                        </div>
+
+
+                        <div
+                            id="theory-feedback"
+                            class="theory-value"
+                        >
+                            —
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- 第一排 -->
+
+                    <div class="row g-3">
+
+
+                        <!-- Russell -->
+
+                        <div class="col-lg-4">
+
+                            <div class="theory-card">
+
+
+                                <div class="theory-card-title">
+                                    Russell Valence × Arousal
+                                </div>
+
+
+                                <div class="row g-2 mb-2">
+
+
+                                    <div class="col-6">
+
+                                        <div class="theory-label">
+                                            Valence
+                                        </div>
+
+                                        <div
+                                            id="theory-valence"
+                                            class="theory-value"
+                                        >
+                                            —
+                                        </div>
+
+                                    </div>
+
+
+
+                                    <div class="col-6">
+
+                                        <div class="theory-label">
+                                            Arousal
+                                        </div>
+
+                                        <div
+                                            id="theory-arousal"
+                                            class="theory-value"
+                                        >
+                                            —
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+
+                                <div
+                                    class="circumplex-map"
+                                    aria-label="Russell Valence Arousal Map"
+                                >
+
+                                    <span class="circumplex-axis-label axis-high">
+                                        High Arousal
+                                    </span>
+
+
+                                    <span class="circumplex-axis-label axis-low">
+                                        Low Arousal
+                                    </span>
+
+
+                                    <span class="circumplex-axis-label axis-negative">
+                                        Negative
+                                    </span>
+
+
+                                    <span class="circumplex-axis-label axis-positive">
+                                        Positive
+                                    </span>
+
+
+                                    <div
+                                        id="circumplex-dot"
+                                        class="circumplex-dot"
+                                    ></div>
+
+                                </div>
+
+
+                                <div class="small text-muted">
+                                    Valence: -5 ～ +5 · Arousal: 1 ～ 5
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Affect -->
+
+                        <div class="col-lg-4">
+
+                            <div class="theory-card">
+
+                                <div class="theory-card-title">
+                                    工作情緒狀態
+                                </div>
+
+
+                                <div class="theory-label">
+                                    情緒狀態
+                                </div>
+
+
+                                <div
+                                    id="theory-affective-state"
+                                    class="theory-value fs-5 mb-3"
+                                >
+                                    —
+                                </div>
+
+
+                                <div class="theory-label">
+                                    判讀說明
+                                </div>
+
+
+                                <div
+                                    id="theory-affective-description"
+                                    class="text-muted"
+                                >
+                                    —
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Confidence -->
+
+                        <div class="col-lg-4">
+
+                            <div class="theory-card">
+
+                                <div class="theory-card-title">
+                                    分析摘要
+                                </div>
+
+
+                                <div class="theory-label">
+                                    分析可信度
+                                </div>
+
+
+                                <div class="mb-3">
+
+                                    <span
+                                        id="theory-confidence"
+                                        class="
+                                            analysis-confidence
+                                            confidence-unknown
+                                        "
+                                    >
+                                        未分析
+                                    </span>
+
+                                </div>
+
+
+                                <div class="theory-label">
+                                    整體情緒傾向
+                                </div>
+
+
+                                <div
+                                    id="theory-general-sentiment"
+                                    class="theory-value mb-3"
+                                >
+                                    —
+                                </div>
+
+
+                                <div class="theory-label">
+                                    議題分類
+                                </div>
+
+
+                                <div
+                                    id="theory-category"
+                                    class="theory-value"
+                                >
+                                    —
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- JD-R -->
+
+                    <div class="theory-card mt-3">
+
+                        <div
+                            class="
+                                d-flex
+                                flex-wrap
+                                justify-content-between
+                                align-items-center
+                                gap-2
+                                mb-3
+                            "
+                        >
+
+                            <div class="theory-card-title mb-0">
+                                JD-R
+                            </div>
+
+
+                            <span
+                                id="theory-jdr-process"
+                                class="badge bg-secondary"
+                            >
+                                未分析
+                            </span>
+
+                        </div>
+
+
+
+                        <div class="row g-4">
+
+
+                            <div class="col-md-6">
+
+                                <div class="analysis-section-title">
+                                    Job Demands
+                                </div>
+
+
+                                <div
+                                    id="theory-demands"
+                                    class="theory-list"
+                                ></div>
+
+                            </div>
+
+
+
+                            <div class="col-md-6">
+
+                                <div class="analysis-section-title">
+                                    Job Resources
+                                </div>
+
+
+                                <div
+                                    id="theory-resources"
+                                    class="theory-list"
+                                ></div>
+
+                            </div>
+
+
+
+                            <div class="col-md-6">
+
+                                <div class="analysis-section-title">
+                                    壓力反應
+                                </div>
+
+
+                                <div
+                                    id="theory-strain"
+                                    class="theory-list"
+                                ></div>
+
+                            </div>
+
+
+
+                            <div class="col-md-6">
+
+                                <div class="analysis-section-title">
+                                    正向動機
+                                </div>
+
+
+                                <div
+                                    id="theory-motivation"
+                                    class="theory-list"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Reasoning -->
+
+                    <div class="theory-card mt-3">
+
+                        <div class="theory-card-title">
+                            分析依據
+                        </div>
+
+
+                        <div
+                            id="theory-reasoning"
+                            class="text-muted"
+                        >
+                            —
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="theory-note mt-3">
+
+                        此結果用於員工回饋與工作體驗分析，
+                        提供 HR 作為趨勢判讀與改善參考，
+                        不代表心理衡鑑、醫療診斷或臨床結論。
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Footer -->
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        關閉
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         Libraries
+         ===================================================== -->
+
+    <!-- =====================================================
+     JavaScript Libraries
+     ===================================================== -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+></script>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"
+    type="text/javascript"
+></script>
+
+
+<!-- =====================================================
+     Admin Application
+     ===================================================== -->
+
+<script
+    src="{{ url_for('static', filename='js/admin.js') }}"
+></script>
+
+<script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
+</body>
+</html>

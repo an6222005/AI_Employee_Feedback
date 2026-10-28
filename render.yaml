@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: employee-feedback-test
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: DEPLOYMENT_MODE
+        value: cloud-test
+      - key: DB_NAME
+        value: final_project_v2_test
+      - key: DB_USER
+        value: feedback_preview
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SITE_USERNAME
+        value: demo
+      - key: SITE_PASSWORD
+        sync: false

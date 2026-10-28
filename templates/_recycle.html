@@ -1,0 +1,706 @@
+<!-- =========================================================
+     回收桶
+     ========================================================= -->
+
+<style>
+
+    /* =====================================================
+       Recycle page
+       ===================================================== */
+
+    .recycle-page {
+        width: 100%;
+    }
+
+
+    /* =====================================================
+       Summary
+       ===================================================== */
+
+    .recycle-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+
+        gap: 24px;
+
+        margin-bottom: 18px;
+
+        padding: 18px 20px;
+
+        border: 1px solid #e4e7ec;
+        border-radius: 12px;
+
+        background: #fafcfb;
+    }
+
+
+    .recycle-summary-title {
+        margin: 0;
+
+        color: #18201c;
+
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+
+    .recycle-summary-description {
+        max-width: 780px;
+
+        margin-top: 6px;
+
+        color: #667085;
+
+        font-size: 11.5px;
+        line-height: 1.7;
+    }
+
+
+    .recycle-status {
+        display: inline-flex;
+        align-items: center;
+
+        min-height: 28px;
+
+        padding: 5px 9px;
+
+        border: 1px solid #ead2d2;
+        border-radius: 999px;
+
+        background: #ffffff;
+
+        color: #9f5555;
+
+        font-size: 10.5px;
+        font-weight: 650;
+
+        white-space: nowrap;
+    }
+
+
+    /* =====================================================
+       Retention notice
+       ===================================================== */
+
+    .recycle-retention {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        gap: 12px;
+
+        margin-bottom: 18px;
+    }
+
+
+    .recycle-retention-item {
+        padding: 14px 16px;
+
+        border: 1px solid #e4e7ec;
+        border-radius: 10px;
+
+        background: #ffffff;
+    }
+
+
+    .recycle-retention-label {
+        color: #344054;
+
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+
+
+    .recycle-retention-value {
+        margin-top: 6px;
+
+        color: #18201c;
+
+        font-size: 14px;
+        font-weight: 650;
+    }
+
+
+    .recycle-retention-note {
+        margin-top: 5px;
+
+        color: #98a2b3;
+
+        font-size: 9.5px;
+        line-height: 1.5;
+    }
+
+
+    /* =====================================================
+       Main card
+       ===================================================== */
+
+    .recycle-card {
+        overflow: hidden;
+
+        border: 1px solid #e4e7ec;
+        border-radius: 12px;
+
+        background: #ffffff;
+
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, 0.04),
+            0 1px 3px rgba(16, 24, 40, 0.04);
+    }
+
+
+    .recycle-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        gap: 16px;
+
+        padding: 17px 20px;
+
+        border-bottom: 1px solid #edf0f2;
+    }
+
+
+    .recycle-card-title {
+        margin: 0;
+
+        color: #18201c;
+
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+
+    .recycle-card-description {
+        margin-top: 4px;
+
+        color: #98a2b3;
+
+        font-size: 10.5px;
+        line-height: 1.5;
+    }
+
+
+    .recycle-card-meta {
+        color: #98a2b3;
+
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+
+    /* =====================================================
+       Table
+       ===================================================== */
+
+    .recycle-table-scroll {
+        width: 100%;
+
+        overflow-x: auto;
+    }
+
+
+    .recycle-table {
+        width: 100%;
+
+        min-width: 960px;
+
+        margin: 0;
+
+        table-layout: fixed;
+    }
+
+
+    .recycle-table thead th {
+        height: 46px;
+
+        padding: 0 16px;
+
+        vertical-align: middle;
+
+        border-bottom: 1px solid #e4e7ec;
+
+        background: #f8faf9;
+
+        color: #667085;
+
+        font-size: 10.5px;
+        font-weight: 700;
+
+        white-space: nowrap;
+    }
+
+
+    .recycle-table thead th:nth-child(1) {
+        width: 20%;
+    }
+
+
+    .recycle-table thead th:nth-child(2) {
+        width: 46%;
+    }
+
+
+    .recycle-table thead th:nth-child(3) {
+        width: 19%;
+    }
+
+
+    .recycle-table thead th:nth-child(4) {
+        width: 15%;
+    }
+
+
+    /* =====================================================
+       Fixed row height
+       ===================================================== */
+
+    .recycle-table tbody tr {
+        height: 132px;
+    }
+
+
+    .recycle-table tbody td {
+        height: 132px;
+
+        padding: 13px 16px;
+
+        vertical-align: middle;
+
+        border-bottom: 1px solid #edf0f2;
+
+        color: #344054;
+
+        font-size: 11.5px;
+
+        line-height: 1.5;
+    }
+
+
+    .recycle-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+
+    .recycle-table tbody tr:hover td {
+        background: #fcfdfc;
+    }
+
+
+    /* =====================================================
+       Metadata
+       ===================================================== */
+
+    .recycle-table td:first-child {
+        vertical-align: top;
+    }
+
+
+    .recycle-table td:first-child .fw-bold {
+        color: #475467;
+
+        font-size: 10.5px;
+    }
+
+
+    .recycle-table td:first-child .small {
+        color: #98a2b3 !important;
+
+        font-size: 9.5px;
+    }
+
+
+    .recycle-table td:first-child .badge {
+        max-width: 100%;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        white-space: nowrap;
+    }
+
+
+    /* =====================================================
+       Feedback preview
+       ===================================================== */
+
+    .recycle-table td:nth-child(2) {
+        vertical-align: top;
+    }
+
+
+    .recycle-table td:nth-child(2) {
+        position: relative;
+    }
+
+
+    .recycle-feedback-preview {
+        display: -webkit-box;
+
+        max-height: 72px;
+
+        overflow: hidden;
+
+        color: #667085;
+
+        font-size: 11.5px;
+
+        line-height: 1.6;
+
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+
+        line-clamp: 3;
+
+        word-break: break-word;
+    }
+
+
+    .recycle-feedback-hint {
+        margin-top: 7px;
+
+        color: #98a2b3;
+
+        font-size: 9.5px;
+    }
+
+
+    /* =====================================================
+       Analysis summary
+       ===================================================== */
+
+    .recycle-analysis {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        gap: 7px;
+    }
+
+
+    .recycle-category {
+        max-width: 100%;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        white-space: nowrap;
+
+        color: #667085;
+
+        font-size: 10.5px;
+    }
+
+
+    /* =====================================================
+       Actions
+       ===================================================== */
+
+    .recycle-actions {
+        display: flex;
+        flex-direction: column;
+
+        gap: 7px;
+    }
+
+
+    .recycle-actions .btn {
+        width: 100%;
+        height: 33px;
+        min-height: 33px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin: 0 !important;
+
+        padding: 0 8px;
+
+        font-size: 10.5px;
+        line-height: 1.2;
+    }
+
+
+    /* =====================================================
+       Bottom notice
+       ===================================================== */
+
+    .recycle-bottom-note {
+        margin-top: 18px;
+
+        padding: 13px 15px;
+
+        border: 1px solid #e4e7ec;
+        border-left: 3px solid #b98585;
+
+        border-radius: 9px;
+
+        background: #fafcfb;
+
+        color: #667085;
+
+        font-size: 10.5px;
+
+        line-height: 1.7;
+    }
+
+
+    .recycle-bottom-note strong {
+        color: #475467;
+    }
+
+
+    /* =====================================================
+       Responsive
+       ===================================================== */
+
+    @media (max-width: 900px) {
+
+        .recycle-retention {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+
+    @media (max-width: 767px) {
+
+        .recycle-summary {
+            flex-direction: column;
+        }
+
+
+        .recycle-card-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+    }
+
+</style>
+
+
+
+<div class="recycle-page">
+
+
+    <!-- ===================================================== -->
+    <!-- Summary -->
+    <!-- ===================================================== -->
+
+    <div class="recycle-summary">
+
+        <div>
+
+            <h2 class="recycle-summary-title">
+                已刪除回饋
+            </h2>
+
+
+            <div class="recycle-summary-description">
+
+                此頁暫存已刪除的員工回饋。
+                在資料永久刪除前，可將回饋復原回管理列表，
+                或選擇立即永久刪除。
+
+            </div>
+
+        </div>
+
+
+        <span class="recycle-status">
+            Deleted Data
+        </span>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- Retention -->
+    <!-- ===================================================== -->
+
+    <div class="recycle-retention">
+
+
+        <div class="recycle-retention-item">
+
+            <div class="recycle-retention-label">
+                資料保留期限
+            </div>
+
+
+            <div class="recycle-retention-value">
+                3 天
+            </div>
+
+
+            <div class="recycle-retention-note">
+                已刪除資料會暫時保留，
+                提供誤刪復原機會。
+            </div>
+
+        </div>
+
+
+
+        <div class="recycle-retention-item">
+
+            <div class="recycle-retention-label">
+                復原
+            </div>
+
+
+            <div class="recycle-retention-value">
+                可恢復
+            </div>
+
+
+            <div class="recycle-retention-note">
+                復原後，回饋與原本的分析資料會重新出現在回饋管理中。
+            </div>
+
+        </div>
+
+
+
+        <div class="recycle-retention-item">
+
+            <div class="recycle-retention-label">
+                永久刪除
+            </div>
+
+
+            <div class="recycle-retention-value">
+                無法復原
+            </div>
+
+
+            <div class="recycle-retention-note">
+                永久刪除後，
+                原始回饋與對應分析紀錄將一併移除。
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- Deleted feedback table -->
+    <!-- ===================================================== -->
+
+    <div class="recycle-card">
+
+        <div class="recycle-card-header">
+
+            <div>
+
+                <h3 class="recycle-card-title">
+                    回收桶資料
+                </h3>
+
+
+                <div class="recycle-card-description">
+                    顯示目前尚未永久刪除的回饋紀錄。
+                </div>
+
+            </div>
+
+
+            <div class="recycle-card-meta">
+                僅供資料管理
+            </div>
+
+        </div>
+
+
+
+        <div class="recycle-table-scroll">
+
+            <table
+                class="
+                    table
+                    recycle-table
+                    align-middle
+                "
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            刪除時間與部門
+                        </th>
+
+                        <th>
+                            回饋內容
+                        </th>
+
+                        <th>
+                            情緒與議題
+                        </th>
+
+                        <th>
+                            操作
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="recycleTableBody">
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="
+                                text-center
+                                text-muted
+                                py-5
+                            "
+                        >
+                            資料載入中...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- Note -->
+    <!-- ===================================================== -->
+
+    <div class="recycle-bottom-note">
+
+        <strong>
+            資料管理說明：
+        </strong>
+
+        回收桶僅提供基本資料檢視與刪除管理，
+        不顯示完整分析結果。
+        若需要查看 Valence、Arousal、JD-R、
+        Job Demands、Job Resources 或分析依據，
+        請先復原該筆回饋，再至「回饋管理」查看完整分析。
+
+    </div>
+
+</div>

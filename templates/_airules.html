@@ -1,0 +1,894 @@
+<!-- =========================================================
+     組織語意設定
+     ========================================================= -->
+
+<style>
+
+    /* =====================================================
+       Semantic settings page
+       ===================================================== */
+
+    .semantic-page {
+        width: 100%;
+    }
+
+
+    /* =====================================================
+       Intro
+       ===================================================== */
+
+    .semantic-intro {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+
+        gap: 24px;
+
+        margin-bottom: 18px;
+
+        padding: 18px 20px;
+
+        border: 1px solid #e4e7ec;
+        border-radius: 12px;
+
+        background: #fafcfb;
+    }
+
+
+    .semantic-intro-title {
+        margin: 0;
+
+        color: #18201c;
+
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+
+    .semantic-intro-description {
+        max-width: 760px;
+
+        margin-top: 6px;
+
+        color: #667085;
+
+        font-size: 11.5px;
+        line-height: 1.7;
+    }
+
+
+    .semantic-status {
+        display: inline-flex;
+        align-items: center;
+
+        min-height: 28px;
+
+        padding: 5px 9px;
+
+        border: 1px solid #d5e2dc;
+        border-radius: 999px;
+
+        background: #ffffff;
+
+        color: #416b5a;
+
+        font-size: 10.5px;
+        font-weight: 650;
+
+        white-space: nowrap;
+    }
+
+
+    /* =====================================================
+       Section
+       ===================================================== */
+
+    .semantic-section {
+        margin-bottom: 18px;
+    }
+
+
+    .semantic-card {
+        overflow: hidden;
+
+        border: 1px solid #e4e7ec;
+        border-radius: 12px;
+
+        background: #ffffff;
+
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, 0.04),
+            0 1px 3px rgba(16, 24, 40, 0.04);
+    }
+
+
+    .semantic-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        gap: 16px;
+
+        padding: 17px 20px;
+
+        border-bottom: 1px solid #edf0f2;
+    }
+
+
+    .semantic-card-title {
+        margin: 0;
+
+        color: #18201c;
+
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+
+    .semantic-card-description {
+        margin-top: 4px;
+
+        color: #98a2b3;
+
+        font-size: 10.5px;
+        line-height: 1.5;
+    }
+
+
+    .semantic-card-body {
+        padding: 20px;
+    }
+
+
+    /* =====================================================
+       Form
+       ===================================================== */
+
+    .semantic-form-grid {
+        display: grid;
+
+        grid-template-columns:
+            minmax(240px, 1.5fr)
+            minmax(180px, 1fr)
+            minmax(210px, 1.1fr)
+            auto;
+
+        gap: 14px;
+
+        align-items: end;
+    }
+
+
+    .semantic-field {
+        min-width: 0;
+    }
+
+
+    .semantic-label {
+        display: block;
+
+        margin-bottom: 6px;
+
+        color: #667085;
+
+        font-size: 10.5px;
+        font-weight: 650;
+    }
+
+
+    .semantic-help {
+        margin-top: 6px;
+
+        color: #98a2b3;
+
+        font-size: 9.5px;
+        line-height: 1.5;
+    }
+
+
+    .semantic-form-grid .form-control,
+    .semantic-form-grid .form-select {
+        width: 100%;
+        height: 38px;
+        min-height: 38px;
+
+        font-size: 12px;
+    }
+
+
+    .semantic-actions {
+        display: flex;
+        align-items: center;
+
+        gap: 7px;
+    }
+
+
+    .semantic-actions .btn {
+        height: 38px;
+        min-height: 38px;
+
+        padding:
+            0 14px;
+
+        white-space: nowrap;
+    }
+
+
+    /* =====================================================
+       Guidance
+       ===================================================== */
+
+    .semantic-guidance {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        gap: 12px;
+
+        margin-top: 16px;
+    }
+
+
+    .semantic-guidance-item {
+        padding: 13px 14px;
+
+        border: 1px solid #edf0f2;
+        border-radius: 9px;
+
+        background: #fafcfb;
+    }
+
+
+    .semantic-guidance-label {
+        color: #344054;
+
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+
+
+    .semantic-guidance-text {
+        margin-top: 5px;
+
+        color: #667085;
+
+        font-size: 10px;
+        line-height: 1.6;
+    }
+
+
+    /* =====================================================
+       Rules table
+       ===================================================== */
+
+    .semantic-table-scroll {
+        width: 100%;
+
+        overflow-x: auto;
+    }
+
+
+    .semantic-table {
+        width: 100%;
+
+        min-width: 820px;
+
+        margin: 0;
+
+        table-layout: fixed;
+    }
+
+
+    .semantic-table thead th {
+        height: 46px;
+
+        padding:
+            0 16px;
+
+        vertical-align: middle;
+
+        border-bottom: 1px solid #e4e7ec;
+
+        background: #f8faf9;
+
+        color: #667085;
+
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+
+
+    .semantic-table thead th:nth-child(1) {
+        width: 30%;
+    }
+
+
+    .semantic-table thead th:nth-child(2) {
+        width: 22%;
+    }
+
+
+    .semantic-table thead th:nth-child(3) {
+        width: 30%;
+    }
+
+
+    .semantic-table thead th:nth-child(4) {
+        width: 18%;
+    }
+
+
+    .semantic-table tbody tr {
+        height: 68px;
+    }
+
+
+    .semantic-table tbody td {
+        height: 68px;
+
+        padding:
+            12px 16px;
+
+        vertical-align: middle;
+
+        border-bottom: 1px solid #edf0f2;
+
+        color: #344054;
+
+        font-size: 11.5px;
+    }
+
+
+    .semantic-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+
+    .semantic-table tbody tr:hover td {
+        background: #fcfdfc;
+    }
+
+
+    .semantic-table .badge {
+        max-width: 100%;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        white-space: nowrap;
+    }
+
+
+    .semantic-table td:last-child .d-flex {
+        justify-content: flex-start;
+    }
+
+
+    .semantic-table td:last-child .btn {
+        height: 32px;
+        min-height: 32px;
+
+        padding:
+            0 11px;
+
+        font-size: 10.5px;
+    }
+
+
+    /* =====================================================
+       Concept note
+       ===================================================== */
+
+    .semantic-boundary {
+        margin-top: 18px;
+
+        padding: 14px 16px;
+
+        border: 1px solid #e4e7ec;
+        border-left: 3px solid #809b90;
+        border-radius: 9px;
+
+        background: #fafcfb;
+    }
+
+
+    .semantic-boundary-title {
+        color: #344054;
+
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+
+    .semantic-boundary-text {
+        margin-top: 5px;
+
+        color: #667085;
+
+        font-size: 10.5px;
+        line-height: 1.7;
+    }
+
+
+    /* =====================================================
+       Responsive
+       ===================================================== */
+
+    @media (max-width: 1100px) {
+
+        .semantic-form-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+
+        .semantic-actions {
+            align-self: end;
+        }
+
+
+        .semantic-guidance {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+
+    @media (max-width: 767px) {
+
+        .semantic-intro {
+            flex-direction: column;
+        }
+
+
+        .semantic-form-grid {
+            grid-template-columns: 1fr;
+        }
+
+
+        .semantic-actions {
+            width: 100%;
+        }
+
+
+        .semantic-actions .btn:first-child {
+            flex: 1;
+        }
+
+    }
+
+</style>
+
+
+
+<div class="semantic-page">
+
+
+    <!-- ===================================================== -->
+    <!-- Intro -->
+    <!-- ===================================================== -->
+
+    <div class="semantic-intro">
+
+        <div>
+
+            <h2 class="semantic-intro-title">
+                組織語意參考
+            </h2>
+
+
+            <div class="semantic-intro-description">
+
+                建立企業內部常見詞彙的語意參考，
+                協助系統理解公司特有的說法與工作情境。
+                這些設定屬於分析時的輔助資訊，
+                系統仍會依據完整回饋內容與上下文進行判讀。
+
+            </div>
+
+        </div>
+
+
+        <span class="semantic-status">
+            Context Reference
+        </span>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- Add / Edit -->
+    <!-- ===================================================== -->
+
+    <section class="semantic-section">
+
+        <div class="semantic-card">
+
+            <div class="semantic-card-header">
+
+                <div>
+
+                    <h3 class="semantic-card-title">
+                        新增語意參考
+                    </h3>
+
+
+                    <div class="semantic-card-description">
+
+                        設定企業常用詞彙可能代表的情緒方向與議題分類。
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="semantic-card-body">
+
+                <div class="semantic-form-grid">
+
+
+                    <!-- Keyword -->
+
+                    <div class="semantic-field">
+
+                        <label
+                            for="new-rule-keyword"
+                            class="semantic-label"
+                        >
+                            企業關鍵字
+                        </label>
+
+
+                        <input
+                            type="text"
+                            id="new-rule-keyword"
+                            class="form-control"
+                            maxlength="100"
+                            autocomplete="off"
+                            placeholder="例如：畫大餅、人力吃緊、慣老闆"
+                        >
+
+
+                        <div class="semantic-help">
+
+                            建議設定企業內部經常出現、
+                            且具有特殊語境的詞彙。
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Sentiment -->
+
+                    <div class="semantic-field">
+
+                        <label
+                            for="new-rule-sentiment"
+                            class="semantic-label"
+                        >
+                            建議情緒方向
+                        </label>
+
+
+                        <select
+                            id="new-rule-sentiment"
+                            class="form-select"
+                        >
+
+                            <option value="Negative">
+                                負面
+                            </option>
+
+                            <option value="Neutral">
+                                中立
+                            </option>
+
+                            <option value="Positive">
+                                正面
+                            </option>
+
+                        </select>
+
+
+                        <div class="semantic-help">
+
+                            作為情緒分析參考，
+                            不會單獨決定最終結果。
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Category -->
+
+                    <div class="semantic-field">
+
+                        <label
+                            for="new-rule-category"
+                            class="semantic-label"
+                        >
+                            建議議題分類
+                        </label>
+
+
+                        <select
+                            id="new-rule-category"
+                            class="form-select"
+                        >
+
+                            <option value="">
+                                不指定，由系統判斷
+                            </option>
+
+                            <option value="工作負載">
+                                工作負載
+                            </option>
+
+                            <option value="人際關係與管理">
+                                人際關係與管理
+                            </option>
+
+                            <option value="薪資福利">
+                                薪資福利
+                            </option>
+
+                            <option value="硬體與環境">
+                                硬體與環境
+                            </option>
+
+                            <option value="職涯發展">
+                                職涯發展
+                            </option>
+
+                            <option value="其他">
+                                其他
+                            </option>
+
+                        </select>
+
+
+                        <div class="semantic-help">
+
+                            若詞彙可能出現在多種情境，
+                            建議保持不指定。
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Actions -->
+
+                    <div class="semantic-actions">
+
+                        <button
+                            id="rule-submit-btn"
+                            type="button"
+                            class="
+                                btn
+                                btn-primary
+                            "
+                            onclick="saveRule()"
+                        >
+                            新增
+                        </button>
+
+
+                        <button
+                            id="rule-cancel-btn"
+                            type="button"
+                            class="
+                                btn
+                                btn-outline-secondary
+                                d-none
+                            "
+                            onclick="cancelEditRule()"
+                        >
+                            取消
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- ================================================= -->
+                <!-- Usage guidance -->
+                <!-- ================================================= -->
+
+                <div class="semantic-guidance">
+
+
+                    <div class="semantic-guidance-item">
+
+                        <div class="semantic-guidance-label">
+                            適合加入
+                        </div>
+
+
+                        <div class="semantic-guidance-text">
+
+                            公司內部慣用語、縮寫、
+                            特殊管理術語或具有明確企業語境的詞彙。
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="semantic-guidance-item">
+
+                        <div class="semantic-guidance-label">
+                            不建議加入
+                        </div>
+
+
+                        <div class="semantic-guidance-text">
+
+                            「壓力」、「主管」、「工作」等
+                            過於一般、必須依上下文判斷的詞彙。
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="semantic-guidance-item">
+
+                        <div class="semantic-guidance-label">
+                            分析原則
+                        </div>
+
+
+                        <div class="semantic-guidance-text">
+
+                            語意參考僅補充企業情境，
+                            不直接指定 Valence、Arousal、
+                            Job Demands 或 Job Resources。
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ===================================================== -->
+    <!-- Existing references -->
+    <!-- ===================================================== -->
+
+    <section class="semantic-section">
+
+        <div class="semantic-card">
+
+            <div class="semantic-card-header">
+
+                <div>
+
+                    <h3 class="semantic-card-title">
+                        已建立的語意參考
+                    </h3>
+
+
+                    <div class="semantic-card-description">
+
+                        系統分析回饋時，
+                        會將下列內容作為額外的組織語境資訊。
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="semantic-table-scroll">
+
+                <table
+                    class="
+                        table
+                        semantic-table
+                    "
+                >
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                企業關鍵字
+                            </th>
+
+                            <th>
+                                建議情緒方向
+                            </th>
+
+                            <th>
+                                建議議題分類
+                            </th>
+
+                            <th>
+                                操作
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="rulesTableBody">
+
+                        <tr>
+
+                            <td
+                                colspan="4"
+                                class="
+                                    text-center
+                                    text-muted
+                                    py-5
+                                "
+                            >
+                                資料載入中...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ===================================================== -->
+    <!-- Boundary -->
+    <!-- ===================================================== -->
+
+    <div class="semantic-boundary">
+
+        <div class="semantic-boundary-title">
+            分析邊界
+        </div>
+
+
+        <div class="semantic-boundary-text">
+
+            組織語意參考主要協助系統理解企業內部詞彙，
+            可作為整體情緒與議題分類的輔助資訊。
+            情緒效價、活化程度、工作情緒狀態以及 JD-R
+            相關判讀仍以完整員工回饋內容為主要依據，
+            避免單一關鍵字造成過度判定。
+
+        </div>
+
+    </div>
+
+</div>

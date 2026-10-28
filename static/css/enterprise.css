@@ -1,0 +1,103 @@
+/* Enterprise preview: loaded after the retained application and dashboard styles. */
+:root {
+    --bg-page: #f3f5f9;
+    --text-primary: #182740;
+    --text-secondary: #56657a;
+    --text-muted: #758299;
+    --border: #e1e7f0;
+    --brand-700: #203f77;
+    --brand-600: #315da8;
+    --brand-500: #4976bd;
+    --brand-100: #e8eef9;
+    --brand-50: #f2f6fc;
+    --sidebar-width: 232px;
+    --font-xs: 12px;
+    --font-sm: 13px;
+    --font-xl: 30px;
+}
+body.admin-app { background: var(--bg-page); color: var(--text-primary); }
+.admin-app .sidebar { background: #142745; padding: 30px 16px 20px; border: 0; }
+.admin-app .sidebar-brand { padding: 0 6px; gap: 10px; margin-bottom: 42px; }
+.admin-app .brand-mark { background: #315da8; color: white; border: 0; border-radius: 12px; width: 38px; height: 38px; }
+.admin-app .brand-title { font-size: 16px; letter-spacing: .025em; }
+.admin-app .brand-subtitle { color: #a3b6d5; font-size: 9px; letter-spacing: .16em; margin-top: 5px; }
+.nav-group-label { padding: 0 14px 12px; color: #95a9c8; font-size: 11px; letter-spacing: .12em; }
+.admin-app .sidebar-nav { gap: 7px; }
+.admin-app .sidebar-link { position: relative; color: #bccae0; min-height: 48px; padding: 13px 15px; border-radius: 8px; font-size: 13px; }
+.admin-app .sidebar-link i { color: #a8bbd9; font-size: 17px; }
+.admin-app .sidebar-link:hover { color: white; background: #203857; }
+.admin-app .sidebar-link.active { color: white; background: #2d5087; box-shadow: inset 3px 0 #8db6ff; }
+.admin-app .sidebar-link.active i { color: white; }
+.admin-app .sidebar-footer { border-color: #30425e; color: #b2c2da; font-size: 11px; }
+.admin-app .main-content { padding: 0 36px 48px; }
+.workspace-bar { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--border); margin-bottom: 33px; }
+.workspace-breadcrumb { display: flex; align-items: center; gap: 12px; color: #7a879c; font-size: 12px; }
+.workspace-breadcrumb i { font-size: 9px; }
+.workspace-breadcrumb span { color: #334764; }
+.workspace-account { display: flex; align-items: center; gap: 16px; }
+.preview-badge { color: #365a91; background: #e6edf8; border: 1px solid #d4e0f2; border-radius: 5px; padding: 5px 9px; font-size: 11px; }
+.account-avatar { display: grid; place-items: center; height: 33px; width: 33px; border-radius: 50%; background: #dfe7f3; color: #284b80; font-size: 11px; font-weight: 700; }
+.admin-app .app-header { align-items: center; border: 0; border-radius: 0; background: transparent; box-shadow: none; margin-bottom: 27px; padding: 0; }
+.admin-app .app-eyebrow { font-size: 10px; letter-spacing: .15em; color: #687d9b; margin-bottom: 11px; }
+.admin-app .app-page-title { color: #182c4c; font-size: 29px; font-weight: 700; letter-spacing: -.035em; }
+.admin-app .app-page-description { font-size: 13px; color: #6b7890; margin-top: 10px; }
+.header-action { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 7px; background: white; border: 1px solid #d6dfed; color: #304c78; text-decoration: none; font-size: 12px; white-space: nowrap; }
+.header-action:hover { background: #eaf0fa; color: #203f77; }
+.admin-app #section-dashboard .dashboard-section { margin-bottom: 28px; }
+.admin-app #section-dashboard .scope-filter-card { border: 1px solid #e0e6f0; border-radius: 12px; padding: 20px 22px; box-shadow: 0 2px 4px #14274503; }
+.admin-app #section-dashboard .scope-filter-title { font-size: 14px; color: #243c60; }
+.admin-app #section-dashboard .scope-filter-description { font-size: 12px; color: #738197; }
+.admin-app #section-dashboard .scope-filter-label { font-size: 12px; color: #52627b; }
+.admin-app #section-dashboard .scope-filter-card .form-select,
+.admin-app #section-dashboard .scope-filter-card .form-control { min-height: 40px; font-size: 12px; background-color: #fafbfd; border-color: #dce3ee; border-radius: 7px; }
+.admin-app #section-dashboard .dashboard-section-title { color: #223956; font-size: 17px; font-weight: 700; }
+.admin-app #section-dashboard .dashboard-section-description { font-size: 12px; color: #738197; }
+.admin-app #section-dashboard .metric-grid { gap: 18px; }
+.admin-app #section-dashboard .metric-card { border: 1px solid #e0e6f0; border-radius: 12px; min-height: 166px; padding: 21px; box-shadow: 0 3px 10px #14274503; }
+.admin-app #section-dashboard .metric-card::before { display: none; }
+.admin-app #section-dashboard .metric-label { display: flex; align-items: center; gap: 10px; color: #61718a; font-size: 12px; font-weight: 500; }
+.metric-icon { display: inline-grid; place-items: center; width: 32px; height: 32px; background: #ecf1fb; border-radius: 8px; color: #315da8; font-size: 16px; }
+.admin-app #section-dashboard .metric-positive .metric-icon { color: #2a7a69; background: #e8f5ef; }
+.admin-app #section-dashboard .metric-risk .metric-icon { color: #b65c61; background: #fbefef; }
+.admin-app #section-dashboard .metric-warning .metric-icon { color: #a47a31; background: #fcf4e6; }
+.admin-app #section-dashboard .metric-value { color: #1c355a; font-size: 34px; margin-top: 16px; font-variant-numeric: tabular-nums; letter-spacing: -.045em; }
+.admin-app #section-dashboard .metric-value.metric-text { font-size: 23px; letter-spacing: -.025em; }
+.admin-app #section-dashboard .metric-meta { color: #77849a; font-size: 11px; margin-top: 10px; }
+.admin-app #section-dashboard .insight-card { padding: 23px; border-radius: 12px; border-color: #e0e6f0; box-shadow: 0 3px 10px #14274503; }
+.admin-app #section-dashboard .insight-card-title { color: #243c60; font-size: 15px; }
+.admin-app #section-dashboard .insight-card-description { color: #738197; font-size: 12px; }
+.admin-app #section-dashboard .dashboard-filter-bar { border-color: #dce5f2; background: #edf2fa; padding: 13px 17px; border-radius: 8px; }
+.admin-app #section-dashboard .dashboard-filter-label { color: #4d6383; font-size: 12px; }
+.admin-app #section-dashboard .analysis-metric-card { background: #f7f9fd; border-color: #e1e8f2; }
+.admin-app .btn-primary { --bs-btn-bg: #315da8; --bs-btn-border-color: #315da8; --bs-btn-hover-bg: #234980; --bs-btn-hover-border-color: #234980; --bs-btn-active-bg: #234980; }
+.admin-app .form-control:focus, .admin-app .form-select:focus { border-color: #7196d2 !important; box-shadow: 0 0 0 3px #315da81a !important; }
+.admin-app :is(button, a, select, input):focus-visible { outline: 2px solid #7099dd; outline-offset: 3px; }
+@media (min-width: 1600px) { .admin-app .main-content { padding-left: 48px; padding-right: 48px; } }
+@media (max-width: 1199px) { .admin-app .main-content { padding-left: 24px; padding-right: 24px; } }
+@media (max-width: 991.98px) {
+    .admin-app .app-header { align-items: flex-start; }
+    .admin-app #section-dashboard .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-app .sidebar { position: relative; width: 100%; height: auto; padding: 16px 20px; }
+    .admin-app .sidebar-brand { margin-bottom: 16px; }
+    .admin-app .brand-copy, .admin-app .sidebar-link span { display: block; }
+    .admin-app .sidebar-brand { justify-content: flex-start; }
+    .admin-app .sidebar-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .admin-app .sidebar-link { justify-content: center; padding: 10px 6px; font-size: 12px; }
+    .admin-app .sidebar-footer, .nav-group-label { display: none; }
+    .admin-app .main-content { margin-left: 0; padding: 0 20px 32px; }
+    .workspace-bar { min-height: 60px; margin-bottom: 24px; }
+}
+@media (max-width: 575.98px) {
+    .admin-app .main-content { padding: 0 14px 28px; }
+    .admin-app .app-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .admin-app .app-page-title { font-size: 25px; }
+    .workspace-breadcrumb { font-size: 10px; gap: 6px; }
+    .workspace-account { gap: 8px; }
+    .account-avatar { display: none; }
+    .admin-app #section-dashboard .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .admin-app #section-dashboard .metric-card { padding: 14px; min-height: 160px; }
+    .admin-app #section-dashboard .metric-label { flex-wrap: wrap; gap: 7px; font-size: 11px; }
+    .admin-app #section-dashboard .metric-value.metric-text { font-size: 19px; }
+    .admin-app #section-dashboard .metric-meta { font-size: 10px; }
+    .admin-app #section-dashboard .scope-filter-card, .admin-app #section-dashboard .insight-card { padding: 17px; }
+}

@@ -1,0 +1,3539 @@
+/* ==========================================================
+   員工體驗洞察平台
+   Admin Design System V2
+   ========================================================== */
+
+:root {
+
+    /* ======================================================
+       Typography
+       之後如果覺得字太小，主要改這裡即可
+       ====================================================== */
+
+    --font-xs: 10.5px;
+    --font-sm: 11.5px;
+    --font-base: 14px;
+    --font-md: 15px;
+    --font-lg: 18px;
+    --font-xl: 27px;
+
+
+    /* ======================================================
+       Neutral
+       ====================================================== */
+
+    --bg-page: #f4f6f5;
+
+    --surface: #ffffff;
+    --surface-soft: #f8faf9;
+    --surface-muted: #f1f4f2;
+
+    --text-primary: #17201c;
+    --text-secondary: #59666e;
+    --text-muted: #89949c;
+
+    --border: #e2e7e4;
+    --border-strong: #ced6d2;
+
+
+    /* ======================================================
+       Brand / organization
+       ====================================================== */
+
+    --brand-700: #2f5648;
+    --brand-600: #3e6b5a;
+    --brand-500: #568675;
+
+    --brand-100: #e6f0ec;
+    --brand-50: #f3f8f6;
+
+
+    /* ======================================================
+       Information / affect analysis
+       ====================================================== */
+
+    --info-700: #405d70;
+    --info-600: #527187;
+    --info-500: #6f8b9d;
+
+    --info-100: #e8eff3;
+    --info-50: #f4f8fa;
+
+
+    /* ======================================================
+       JD-R / warning
+       ====================================================== */
+
+    --warning-700: #80602f;
+    --warning-600: #9b7439;
+    --warning-500: #b38b50;
+
+    --warning-100: #f3e9d7;
+    --warning-50: #fbf7ef;
+
+
+    /* ======================================================
+       Negative / danger
+       ====================================================== */
+
+    --danger-700: #914848;
+    --danger-600: #aa5757;
+    --danger-500: #bd7070;
+
+    --danger-100: #f5e5e5;
+    --danger-50: #fcf5f5;
+
+
+    /* ======================================================
+       Positive
+       ====================================================== */
+
+    --positive-700: #326550;
+    --positive-600: #438067;
+    --positive-100: #e5f1eb;
+
+
+    /* ======================================================
+       Layout
+       ====================================================== */
+
+    --sidebar-width: 248px;
+
+    --radius-sm: 7px;
+    --radius: 11px;
+    --radius-lg: 14px;
+
+    --shadow-sm:
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 1px 3px rgba(16, 24, 40, 0.05);
+
+    --shadow-md:
+        0 4px 14px rgba(16, 24, 40, 0.06);
+
+    --shadow-lg:
+        0 20px 45px rgba(16, 24, 40, 0.13);
+}
+
+
+/* ==========================================================
+   Global
+   ========================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+
+html {
+    background:
+        var(--bg-page);
+}
+
+
+body.admin-app {
+
+    margin: 0;
+
+    min-height: 100vh;
+
+    background:
+        var(--bg-page);
+
+    color:
+        var(--text-primary);
+
+    font-family:
+        "Noto Sans TC",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    font-size:
+        var(--font-base);
+
+    -webkit-font-smoothing:
+        antialiased;
+
+    text-rendering:
+        optimizeLegibility;
+}
+
+
+a {
+    color:
+        inherit;
+}
+
+
+/* ==========================================================
+   Sidebar
+   ========================================================== */
+
+.sidebar {
+
+    position: fixed;
+
+    inset:
+        0 auto 0 0;
+
+    z-index:
+        1040;
+
+    width:
+        var(--sidebar-width);
+
+    height:
+        100vh;
+
+    padding:
+        25px 16px 18px;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    background:
+        #15211c;
+
+    border-right:
+        1px solid rgba(255, 255, 255, 0.04);
+}
+
+
+.sidebar-brand {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        12px;
+
+    min-height:
+        48px;
+
+    padding:
+        0 8px;
+
+    margin-bottom:
+        30px;
+}
+
+
+.brand-mark {
+
+    width:
+        39px;
+
+    height:
+        39px;
+
+    flex:
+        0 0 39px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+    border-radius:
+        10px;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    color:
+        #cfe3da;
+
+    font-size:
+        18px;
+}
+
+
+.brand-title {
+
+    color:
+        #f4f7f5;
+
+    font-size:
+        15px;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.01em;
+}
+
+
+.brand-subtitle {
+
+    margin-top:
+        3px;
+
+    color:
+        #8fa298;
+
+    font-size:
+        10.5px;
+
+    font-weight:
+        500;
+}
+
+
+.sidebar-nav {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        7px;
+}
+
+
+.sidebar-link {
+
+    width:
+        100%;
+
+    min-height:
+        45px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        12px;
+
+    padding:
+        0 13px;
+
+    border:
+        1px solid transparent;
+
+    border-radius:
+        9px;
+
+    background:
+        transparent;
+
+    color:
+        #a4b5ad;
+
+    font:
+        inherit;
+
+    font-size:
+        13px;
+
+    font-weight:
+        550;
+
+    text-align:
+        left;
+
+    cursor:
+        pointer;
+
+    transition:
+        background 150ms ease,
+        color 150ms ease,
+        border-color 150ms ease;
+}
+
+
+.sidebar-link i {
+
+    width:
+        19px;
+
+    font-size:
+        16px;
+
+    text-align:
+        center;
+}
+
+
+.sidebar-link:hover {
+
+    color:
+        #ffffff;
+
+    background:
+        rgba(255,255,255,0.055);
+}
+
+
+.sidebar-link.active {
+
+    color:
+        #ffffff;
+
+    background:
+        #284037;
+
+    border-color:
+        rgba(255,255,255,0.055);
+
+    box-shadow:
+        inset 3px 0 0 #79ad97;
+}
+
+
+.sidebar-footer {
+
+    margin-top:
+        auto;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        8px;
+
+    padding:
+        12px 10px 4px;
+
+    color:
+        #83968c;
+
+    font-size:
+        10px;
+}
+
+
+.sidebar-status-dot,
+.status-dot {
+
+    width:
+        7px;
+
+    height:
+        7px;
+
+    flex:
+        0 0 7px;
+
+    border-radius:
+        50%;
+
+    background:
+        #68a68a;
+
+    box-shadow:
+        0 0 0 3px rgba(104,166,138,0.12);
+}
+
+
+/* ==========================================================
+   Main
+   ========================================================== */
+
+.main-content {
+
+    min-height:
+        100vh;
+
+    margin-left:
+        var(--sidebar-width);
+
+    padding:
+        31px 38px 48px;
+}
+
+
+/* ==========================================================
+   Header
+   ========================================================== */
+
+.app-header {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        flex-start;
+
+    gap:
+        24px;
+
+    margin-bottom:
+        27px;
+
+    padding-bottom:
+        22px;
+
+    border-bottom:
+        1px solid var(--border);
+}
+
+
+.app-eyebrow {
+
+    margin-bottom:
+        7px;
+
+    color:
+        var(--brand-600);
+
+    font-size:
+        var(--font-xs);
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.08em;
+}
+
+
+.app-page-title {
+
+    margin:
+        0;
+
+    color:
+        var(--text-primary);
+
+    font-size:
+        var(--font-xl);
+
+    line-height:
+        1.25;
+
+    font-weight:
+        720;
+
+    letter-spacing:
+        -0.025em;
+}
+
+
+.app-page-description {
+
+    margin:
+        7px 0 0;
+
+    color:
+        var(--text-secondary);
+
+    font-size:
+        12px;
+
+    line-height:
+        1.65;
+}
+
+
+.status-pill {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        8px;
+
+    padding:
+        7px 11px;
+
+    border:
+        1px solid #d8e1dd;
+
+    border-radius:
+        999px;
+
+    background:
+        var(--surface);
+
+    color:
+        #587066;
+
+    font-size:
+        10.5px;
+
+    font-weight:
+        600;
+}
+
+
+/* ==========================================================
+   Generic typography
+   ========================================================== */
+
+.admin-app h2,
+.admin-app h3,
+.admin-app h4,
+.admin-app h5,
+.admin-app h6 {
+
+    color:
+        var(--text-primary);
+
+    letter-spacing:
+        -0.01em;
+}
+
+
+.admin-app .text-muted,
+.admin-app .text-secondary {
+
+    color:
+        var(--text-secondary)
+        !important;
+}
+
+
+.admin-app .fw-bold {
+
+    font-weight:
+        650
+        !important;
+}
+
+
+/* ==========================================================
+   Generic cards
+   ========================================================== */
+
+.admin-app .card {
+
+    border:
+        1px solid var(--border)
+        !important;
+
+    border-radius:
+        var(--radius)
+        !important;
+
+    background:
+        var(--surface)
+        !important;
+
+    box-shadow:
+        var(--shadow-sm)
+        !important;
+}
+
+
+.admin-app .shadow-sm,
+.admin-app .shadow {
+
+    box-shadow:
+        var(--shadow-sm)
+        !important;
+}
+
+
+.admin-app .rounded-4 {
+
+    border-radius:
+        var(--radius)
+        !important;
+}
+
+
+.admin-app .bg-white {
+
+    background:
+        var(--surface)
+        !important;
+}
+
+
+.admin-app .bg-light {
+
+    background:
+        var(--surface-soft)
+        !important;
+}
+
+
+/* ==========================================================
+   Forms
+   ========================================================== */
+
+.admin-app .form-label {
+
+    margin-bottom:
+        6px;
+
+    color:
+        #4c5d65
+        !important;
+
+    font-size:
+        var(--font-sm)
+        !important;
+
+    font-weight:
+        600
+        !important;
+}
+
+
+.admin-app .form-control,
+.admin-app .form-select {
+
+    min-height:
+        38px;
+
+    border:
+        1px solid var(--border-strong);
+
+    border-radius:
+        8px;
+
+    background:
+        #ffffff;
+
+    color:
+        var(--text-primary);
+
+    font-size:
+        12px;
+
+    box-shadow:
+        none;
+
+    transition:
+        border-color 150ms ease,
+        box-shadow 150ms ease;
+}
+
+
+.admin-app .form-control:hover,
+.admin-app .form-select:hover {
+
+    border-color:
+        #adbab4;
+}
+
+
+.admin-app .form-control:focus,
+.admin-app .form-select:focus {
+
+    border-color:
+        #729b8b;
+
+    box-shadow:
+        0 0 0 3px rgba(62,107,90,0.10);
+}
+
+
+.admin-app .form-control::placeholder {
+
+    color:
+        #9ba4ab;
+}
+
+
+/* ==========================================================
+   Buttons
+   ========================================================== */
+
+.admin-app .btn {
+
+    min-height:
+        35px;
+
+    border-radius:
+        8px;
+
+    font-size:
+        11px;
+
+    font-weight:
+        600;
+
+    box-shadow:
+        none
+        !important;
+
+    transition:
+        all 150ms ease;
+}
+
+
+.admin-app .btn:hover {
+
+    transform:
+        translateY(-1px);
+}
+
+
+.admin-app .btn-primary,
+.admin-app .btn-success {
+
+    background:
+        var(--brand-600)
+        !important;
+
+    border-color:
+        var(--brand-600)
+        !important;
+
+    color:
+        #ffffff
+        !important;
+}
+
+
+.admin-app .btn-primary:hover,
+.admin-app .btn-success:hover {
+
+    background:
+        var(--brand-700)
+        !important;
+
+    border-color:
+        var(--brand-700)
+        !important;
+}
+
+
+.admin-app .btn-outline-primary,
+.admin-app .btn-outline-success {
+
+    color:
+        var(--brand-700)
+        !important;
+
+    border-color:
+        #9ab9ac
+        !important;
+
+    background:
+        #ffffff
+        !important;
+}
+
+
+.admin-app .btn-outline-primary:hover,
+.admin-app .btn-outline-success:hover {
+
+    color:
+        #ffffff
+        !important;
+
+    background:
+        var(--brand-600)
+        !important;
+
+    border-color:
+        var(--brand-600)
+        !important;
+}
+
+
+.admin-app .btn-outline-secondary,
+.admin-app .btn-light {
+
+    color:
+        #526068
+        !important;
+
+    border-color:
+        var(--border-strong)
+        !important;
+
+    background:
+        #ffffff
+        !important;
+}
+
+
+.admin-app .btn-outline-secondary:hover,
+.admin-app .btn-light:hover {
+
+    color:
+        var(--text-primary)
+        !important;
+
+    background:
+        #f5f7f6
+        !important;
+
+    border-color:
+        #acb8b2
+        !important;
+}
+
+
+.admin-app .btn-danger,
+.admin-app .btn-outline-danger {
+
+    color:
+        var(--danger-600)
+        !important;
+
+    border-color:
+        #dfb4b4
+        !important;
+
+    background:
+        #ffffff
+        !important;
+}
+
+
+.admin-app .btn-danger:hover,
+.admin-app .btn-outline-danger:hover {
+
+    color:
+        #ffffff
+        !important;
+
+    background:
+        var(--danger-600)
+        !important;
+
+    border-color:
+        var(--danger-600)
+        !important;
+}
+
+
+.admin-app .btn-warning,
+.admin-app .btn-outline-warning {
+
+    color:
+        var(--warning-700)
+        !important;
+
+    border-color:
+        #dec8a6
+        !important;
+
+    background:
+        var(--warning-50)
+        !important;
+}
+
+
+/* ==========================================================
+   Badges
+   ========================================================== */
+
+.admin-app .badge {
+
+    padding:
+        5px 8px;
+
+    border-radius:
+        999px;
+
+    font-size:
+        10.5px;
+
+    font-weight:
+        600;
+
+    line-height:
+        1.15;
+}
+
+
+.admin-app .bg-success {
+
+    background:
+        var(--positive-600)
+        !important;
+}
+
+
+.admin-app .bg-danger {
+
+    background:
+        var(--danger-600)
+        !important;
+}
+
+
+.admin-app .bg-warning {
+
+    background:
+        var(--warning-100)
+        !important;
+
+    color:
+        var(--warning-700)
+        !important;
+}
+
+
+.admin-app .bg-secondary {
+
+    background:
+        #7c8795
+        !important;
+}
+
+
+.admin-app .bg-info {
+
+    background:
+        var(--info-100)
+        !important;
+
+    color:
+        var(--info-700)
+        !important;
+}
+
+
+/* ==========================================================
+   Tables
+   ========================================================== */
+
+.admin-app .table {
+
+    color:
+        var(--text-primary);
+
+    --bs-table-hover-bg:
+        #fafcfb;
+}
+
+
+.admin-app .table > :not(caption) > * > * {
+
+    border-bottom-color:
+        #edf0ee;
+}
+
+
+.admin-app .table thead th,
+.admin-app .table-light th {
+
+    background:
+        #f5f8f6
+        !important;
+
+    color:
+        #59686f;
+
+    border-bottom:
+        1px solid var(--border)
+        !important;
+
+    font-weight:
+        700;
+}
+
+
+.admin-app .table tbody td {
+
+    color:
+        #34454d;
+}
+
+
+/* ==========================================================
+   DataTable
+   ========================================================== */
+
+.dataTable-wrapper .dataTable-top,
+.dataTable-wrapper .dataTable-bottom {
+
+    color:
+        var(--text-secondary);
+
+    font-size:
+        11px;
+}
+
+
+.dataTable-input,
+.dataTable-selector {
+
+    border:
+        1px solid var(--border-strong)
+        !important;
+
+    border-radius:
+        8px
+        !important;
+
+    background:
+        #ffffff
+        !important;
+
+    color:
+        var(--text-primary)
+        !important;
+}
+
+
+.dataTable-input:focus,
+.dataTable-selector:focus {
+
+    outline:
+        none;
+
+    border-color:
+        #729b8b
+        !important;
+
+    box-shadow:
+        0 0 0 3px rgba(62,107,90,0.08);
+}
+
+
+/* ==========================================================
+   Dashboard
+   ========================================================== */
+
+/*
+   Section 標題建立明顯層級
+*/
+
+.admin-app #section-dashboard .dashboard-section-header {
+
+    position:
+        relative;
+
+    padding-left:
+        14px;
+}
+
+
+.admin-app #section-dashboard .dashboard-section-header::before {
+
+    position:
+        absolute;
+
+    top:
+        1px;
+
+    bottom:
+        1px;
+
+    left:
+        0;
+
+    width:
+        3px;
+
+    border-radius:
+        999px;
+
+    content:
+        "";
+
+    background:
+        var(--brand-500);
+}
+
+
+.admin-app #section-dashboard .dashboard-section-title {
+
+    color:
+        var(--text-primary)
+        !important;
+
+    font-size:
+        var(--font-lg)
+        !important;
+
+    font-weight:
+        720
+        !important;
+}
+
+
+.admin-app #section-dashboard .dashboard-section-description {
+
+    color:
+        var(--text-secondary)
+        !important;
+
+    font-size:
+        11.5px
+        !important;
+}
+
+
+/*
+   第一區：組織指標
+*/
+
+.admin-app #section-dashboard section.dashboard-section:nth-of-type(1)
+.dashboard-section-header::before,
+
+.admin-app #section-dashboard section.dashboard-section:nth-of-type(2)
+.dashboard-section-header::before {
+
+    background:
+        var(--brand-500);
+}
+
+
+/*
+   跨部門議題：風險
+*/
+
+.admin-app #section-dashboard section.dashboard-section:nth-of-type(3)
+.dashboard-section-header::before {
+
+    background:
+        var(--danger-500);
+}
+
+
+/*
+   趨勢資訊
+*/
+
+.admin-app #section-dashboard section.dashboard-section:nth-of-type(4)
+.dashboard-section-header::before {
+
+    background:
+        var(--info-500);
+}
+
+
+/*
+   情緒分析
+*/
+
+.admin-app #section-dashboard section.dashboard-section:nth-of-type(5)
+.dashboard-section-header::before {
+
+    background:
+        var(--info-600);
+}
+
+
+/*
+   JD-R
+*/
+
+.admin-app #section-dashboard section.dashboard-section:nth-of-type(6)
+.dashboard-section-header::before {
+
+    background:
+        var(--warning-500);
+}
+
+
+/* ==========================================================
+   Dashboard KPI
+   ========================================================== */
+
+.admin-app #section-dashboard .metric-card {
+
+    border:
+        1px solid var(--border)
+        !important;
+
+    border-radius:
+        var(--radius)
+        !important;
+
+    box-shadow:
+        var(--shadow-sm)
+        !important;
+
+    background:
+        var(--surface)
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card::before {
+
+    height:
+        4px
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(1)::before {
+
+    background:
+        var(--brand-500)
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(2) {
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--brand-50) 0,
+            #ffffff 58%
+        )
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(2)::before {
+
+    background:
+        var(--positive-600)
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(3) {
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--danger-50) 0,
+            #ffffff 58%
+        )
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(3)::before {
+
+    background:
+        var(--danger-500)
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(4) {
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--warning-50) 0,
+            #ffffff 58%
+        )
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(4)::before {
+
+    background:
+        var(--warning-500)
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-label {
+
+    color:
+        var(--text-secondary)
+        !important;
+
+    font-size:
+        11px
+        !important;
+
+    font-weight:
+        650
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-value {
+
+    color:
+        var(--text-primary)
+        !important;
+
+    font-weight:
+        730
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(2)
+.metric-value {
+
+    color:
+        var(--positive-700)
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(3)
+.metric-value {
+
+    color:
+        var(--danger-700)
+        !important;
+}
+
+
+.admin-app #section-dashboard .metric-card:nth-child(4)
+.metric-value {
+
+    color:
+        var(--warning-700)
+        !important;
+}
+
+
+/* ==========================================================
+   Dashboard chart cards
+   ========================================================== */
+
+.admin-app #section-dashboard .insight-card {
+
+    border:
+        1px solid var(--border)
+        !important;
+
+    border-radius:
+        var(--radius)
+        !important;
+
+    background:
+        var(--surface)
+        !important;
+
+    box-shadow:
+        var(--shadow-sm)
+        !important;
+
+    transition:
+        box-shadow 160ms ease,
+        border-color 160ms ease;
+}
+
+
+.admin-app #section-dashboard .insight-card:hover {
+
+    border-color:
+        #d5ddda
+        !important;
+
+    box-shadow:
+        var(--shadow-md)
+        !important;
+}
+
+
+.admin-app #section-dashboard .insight-card-title {
+
+    color:
+        #26352f
+        !important;
+
+    font-size:
+        var(--font-md)
+        !important;
+
+    font-weight:
+        700
+        !important;
+}
+
+
+.admin-app #section-dashboard .insight-card-description {
+
+    color:
+        var(--text-muted)
+        !important;
+
+    font-size:
+        10.5px
+        !important;
+}
+
+
+/*
+   情緒分析區域淡藍色背景
+*/
+
+.admin-app #section-dashboard
+section.dashboard-section:nth-of-type(5)
+.insight-card {
+
+    border-top:
+        3px solid #95adbb
+        !important;
+}
+
+
+/*
+   JD-R 區域淡琥珀
+*/
+
+.admin-app #section-dashboard
+section.dashboard-section:nth-of-type(6)
+.insight-card {
+
+    border-top:
+        3px solid #c4a16f
+        !important;
+}
+
+
+/*
+   熱力圖風險區
+*/
+
+.admin-app #section-dashboard
+section.dashboard-section:nth-of-type(3)
+.insight-card {
+
+    border-top:
+        3px solid #c88a8a
+        !important;
+}
+
+
+/* ==========================================================
+   Dashboard analysis KPI
+   ========================================================== */
+
+.admin-app #section-dashboard .analysis-metric {
+
+    border:
+        1px solid #dfe6e2
+        !important;
+
+    border-radius:
+        10px
+        !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--info-50),
+            #ffffff
+        )
+        !important;
+}
+
+
+.admin-app #section-dashboard .analysis-metric:nth-child(4) {
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--warning-50),
+            #ffffff
+        )
+        !important;
+}
+
+
+.admin-app #section-dashboard .analysis-metric-label {
+
+    color:
+        #60717a
+        !important;
+
+    font-weight:
+        650
+        !important;
+}
+
+
+.admin-app #section-dashboard .analysis-metric-value {
+
+    color:
+        #29404d
+        !important;
+
+    font-weight:
+        720
+        !important;
+}
+
+
+/* ==========================================================
+   Feedback Management
+   ========================================================== */
+
+.admin-app #section-table .feedback-toolbar-title {
+
+    color:
+        var(--text-primary)
+        !important;
+
+    font-size:
+        var(--font-lg)
+        !important;
+
+    font-weight:
+        720
+        !important;
+}
+
+
+.admin-app #section-table .feedback-filter-card {
+
+    border:
+        1px solid #dce5e1
+        !important;
+
+    border-top:
+        3px solid #879f95
+        !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            #f8faf9,
+            #ffffff 48%
+        )
+        !important;
+
+    box-shadow:
+        var(--shadow-sm)
+        !important;
+}
+
+
+.admin-app #section-table .feedback-filter-title {
+
+    color:
+        #31423b
+        !important;
+
+    font-size:
+        13px
+        !important;
+}
+
+
+.admin-app #section-table .feedback-info-bar {
+
+    border:
+        1px solid #dce5e8
+        !important;
+
+    border-left:
+        3px solid var(--info-500)
+        !important;
+
+    background:
+        var(--info-50)
+        !important;
+}
+
+
+.admin-app #section-table .feedback-table-card {
+
+    border:
+        1px solid var(--border)
+        !important;
+
+    box-shadow:
+        var(--shadow-sm)
+        !important;
+}
+
+
+.admin-app #section-table .feedback-table-card-header {
+
+    background:
+        #f8faf9
+        !important;
+}
+
+
+.admin-app #section-table .feedback-table-card-title {
+
+    color:
+        #273a32
+        !important;
+
+    font-size:
+        var(--font-md)
+        !important;
+}
+
+
+.admin-app #section-table #feedbackTable thead th {
+
+    background:
+        #eff4f1
+        !important;
+
+    color:
+        #4f6058
+        !important;
+}
+
+
+.admin-app #section-table #feedbackTable tbody tr:hover td {
+
+    background:
+        #f8fbf9
+        !important;
+}
+
+
+/* ==========================================================
+   Analysis badges
+   ========================================================== */
+
+.theory-summary {
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        6px;
+}
+
+
+.theory-badge {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    min-height:
+        25px;
+
+    padding:
+        4px 8px;
+
+    border:
+        1px solid #e0e6e3;
+
+    border-radius:
+        999px;
+
+    background:
+        #ffffff;
+
+    color:
+        #57666e;
+
+    font-size:
+        10.5px;
+
+    font-weight:
+        600;
+}
+
+
+/* ==========================================================
+   Confidence
+   ========================================================== */
+
+.analysis-confidence {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    min-width:
+        34px;
+
+    padding:
+        5px 8px;
+
+    border:
+        1px solid transparent;
+
+    border-radius:
+        999px;
+
+    font-size:
+        10.5px;
+
+    font-weight:
+        700;
+}
+
+
+.confidence-high {
+
+    color:
+        var(--positive-700)
+        !important;
+
+    background:
+        var(--positive-100)
+        !important;
+
+    border-color:
+        #c4ddd2
+        !important;
+}
+
+
+.confidence-medium {
+
+    color:
+        var(--warning-700)
+        !important;
+
+    background:
+        var(--warning-100)
+        !important;
+
+    border-color:
+        #e3d1b2
+        !important;
+}
+
+
+.confidence-low {
+
+    color:
+        var(--danger-700)
+        !important;
+
+    background:
+        var(--danger-100)
+        !important;
+
+    border-color:
+        #e6c4c4
+        !important;
+}
+
+
+.confidence-unknown {
+
+    color:
+        #68747d
+        !important;
+
+    background:
+        #f1f3f4
+        !important;
+
+    border-color:
+        #e0e4e6
+        !important;
+}
+
+
+/* ==========================================================
+   Semantic settings
+   ========================================================== */
+
+.admin-app #section-airules .semantic-intro {
+
+    border:
+        1px solid #d8e5df
+        !important;
+
+    border-left:
+        4px solid var(--brand-500)
+        !important;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--brand-50),
+            #ffffff 65%
+        )
+        !important;
+}
+
+
+.admin-app #section-airules .semantic-intro-title {
+
+    color:
+        var(--brand-700)
+        !important;
+
+    font-size:
+        var(--font-md)
+        !important;
+}
+
+
+.admin-app #section-airules .semantic-card {
+
+    border:
+        1px solid var(--border)
+        !important;
+
+    box-shadow:
+        var(--shadow-sm)
+        !important;
+}
+
+
+.admin-app #section-airules
+.semantic-section:first-of-type
+.semantic-card {
+
+    border-top:
+        3px solid var(--brand-500)
+        !important;
+}
+
+
+.admin-app #section-airules .semantic-card-header {
+
+    background:
+        #f8faf9
+        !important;
+}
+
+
+.admin-app #section-airules .semantic-card-title {
+
+    color:
+        #2c3d35
+        !important;
+
+    font-size:
+        var(--font-md)
+        !important;
+}
+
+
+.admin-app #section-airules .semantic-guidance-item:nth-child(1) {
+
+    background:
+        var(--brand-50)
+        !important;
+}
+
+
+.admin-app #section-airules .semantic-guidance-item:nth-child(2) {
+
+    background:
+        var(--danger-50)
+        !important;
+}
+
+
+.admin-app #section-airules .semantic-guidance-item:nth-child(3) {
+
+    background:
+        var(--info-50)
+        !important;
+}
+
+
+.admin-app #section-airules .semantic-table thead th {
+
+    background:
+        #eff4f1
+        !important;
+
+    color:
+        #4e6158
+        !important;
+}
+
+
+.admin-app #section-airules .semantic-boundary {
+
+    border-left:
+        3px solid var(--info-500)
+        !important;
+
+    background:
+        var(--info-50)
+        !important;
+}
+
+
+/* ==========================================================
+   Recycle bin
+   ========================================================== */
+
+.admin-app #section-recycle .recycle-summary {
+
+    border:
+        1px solid #ecdada
+        !important;
+
+    border-left:
+        4px solid var(--danger-500)
+        !important;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--danger-50),
+            #ffffff 70%
+        )
+        !important;
+}
+
+
+.admin-app #section-recycle .recycle-summary-title {
+
+    color:
+        var(--danger-700)
+        !important;
+
+    font-size:
+        var(--font-md)
+        !important;
+}
+
+
+.admin-app #section-recycle
+.recycle-retention-item {
+
+    position:
+        relative;
+
+    overflow:
+        hidden;
+
+    box-shadow:
+        var(--shadow-sm);
+}
+
+
+.admin-app #section-recycle
+.recycle-retention-item::before {
+
+    position:
+        absolute;
+
+    top:
+        0;
+
+    left:
+        0;
+
+    right:
+        0;
+
+    height:
+        3px;
+
+    content:
+        "";
+}
+
+
+.admin-app #section-recycle
+.recycle-retention-item:nth-child(1)::before {
+
+    background:
+        var(--warning-500);
+}
+
+
+.admin-app #section-recycle
+.recycle-retention-item:nth-child(2)::before {
+
+    background:
+        var(--brand-500);
+}
+
+
+.admin-app #section-recycle
+.recycle-retention-item:nth-child(3)::before {
+
+    background:
+        var(--danger-500);
+}
+
+
+.admin-app #section-recycle .recycle-card {
+
+    border:
+        1px solid var(--border)
+        !important;
+
+    box-shadow:
+        var(--shadow-sm)
+        !important;
+}
+
+
+.admin-app #section-recycle .recycle-card-header {
+
+    background:
+        #faf9f9
+        !important;
+}
+
+
+.admin-app #section-recycle .recycle-card-title {
+
+    font-size:
+        var(--font-md)
+        !important;
+}
+
+
+.admin-app #section-recycle .recycle-table thead th {
+
+    background:
+        #f7f3f3
+        !important;
+
+    color:
+        #665858
+        !important;
+}
+
+
+.admin-app #section-recycle .recycle-bottom-note {
+
+    border-left:
+        3px solid var(--danger-500)
+        !important;
+
+    background:
+        var(--danger-50)
+        !important;
+}
+
+
+/* ==========================================================
+   Modal / detail view
+   ========================================================== */
+
+.admin-app .modal-backdrop.show {
+
+    opacity:
+        0.34;
+}
+
+
+.admin-app .modal-content {
+
+    overflow:
+        hidden;
+
+    border:
+        1px solid var(--border)
+        !important;
+
+    border-radius:
+        var(--radius-lg)
+        !important;
+
+    box-shadow:
+        var(--shadow-lg)
+        !important;
+}
+
+
+.admin-app .modal-header {
+
+    padding:
+        20px 22px 17px;
+
+    border-bottom:
+        1px solid var(--border);
+
+    background:
+        #f8faf9;
+}
+
+
+.admin-app .modal-title {
+
+    color:
+        var(--text-primary);
+
+    font-size:
+        17px;
+
+    font-weight:
+        720;
+}
+
+
+.admin-app .modal-body {
+
+    padding:
+        22px;
+
+    background:
+        #f6f8f7;
+}
+
+
+.admin-app .modal-footer {
+
+    padding:
+        13px 22px;
+
+    border-top:
+        1px solid var(--border);
+
+    background:
+        #ffffff;
+}
+
+
+/* ==========================================================
+   Theory / detail cards
+   ========================================================== */
+
+.theory-card {
+
+    height:
+        100%;
+
+    padding:
+        18px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        10px;
+
+    background:
+        #ffffff;
+
+    box-shadow:
+        var(--shadow-sm);
+}
+
+
+.modal-body .row > div:nth-child(1) .theory-card {
+
+    border-top:
+        3px solid var(--info-500);
+}
+
+
+.modal-body .row > div:nth-child(2) .theory-card {
+
+    border-top:
+        3px solid var(--brand-500);
+}
+
+
+.modal-body .row > div:nth-child(3) .theory-card {
+
+    border-top:
+        3px solid var(--warning-500);
+}
+
+
+.theory-card-title {
+
+    margin-bottom:
+        14px;
+
+    color:
+        #24332d;
+
+    font-size:
+        13.5px;
+
+    font-weight:
+        700;
+}
+
+
+.theory-label {
+
+    margin-bottom:
+        4px;
+
+    color:
+        #758088;
+
+    font-size:
+        10px;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.03em;
+}
+
+
+.theory-value {
+
+    color:
+        var(--text-primary);
+
+    font-size:
+        13px;
+
+    font-weight:
+        650;
+}
+
+
+.analysis-section-title {
+
+    margin-bottom:
+        8px;
+
+    color:
+        #465860;
+
+    font-size:
+        11px;
+
+    font-weight:
+        700;
+}
+
+
+.theory-list {
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        6px;
+
+    min-height:
+        28px;
+}
+
+
+.theory-pill {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    padding:
+        5px 8px;
+
+    border:
+        1px solid #dce5e1;
+
+    border-radius:
+        999px;
+
+    background:
+        var(--brand-50);
+
+    color:
+        #465c52;
+
+    font-size:
+        10.5px;
+}
+
+
+.theory-note {
+
+    padding:
+        11px 13px;
+
+    border:
+        1px solid #dde4e1;
+
+    border-left:
+        3px solid var(--info-500);
+
+    border-radius:
+        7px;
+
+    background:
+        var(--info-50);
+
+    color:
+        #66747c;
+
+    font-size:
+        10.5px;
+
+    line-height:
+        1.65;
+}
+
+
+/* ==========================================================
+   Russell Valence × Arousal map
+   ========================================================== */
+
+.circumplex-map {
+
+    position:
+        relative;
+
+    width:
+        min(250px, 100%);
+
+    aspect-ratio:
+        1 / 1;
+
+    margin:
+        20px auto 12px;
+
+    overflow:
+        hidden;
+
+    border:
+        1px solid #d6dfdb;
+
+    border-radius:
+        10px;
+
+    background:
+        linear-gradient(
+            to right,
+            transparent 49.7%,
+            #d6ddda 49.7%,
+            #d6ddda 50.3%,
+            transparent 50.3%
+        ),
+        linear-gradient(
+            to bottom,
+            transparent 49.7%,
+            #d6ddda 49.7%,
+            #d6ddda 50.3%,
+            transparent 50.3%
+        ),
+        linear-gradient(
+            135deg,
+            #faf4f4,
+            #fbfcfb 46%,
+            #f0f7f4
+        );
+}
+
+
+.circumplex-dot {
+
+    position:
+        absolute;
+
+    z-index:
+        5;
+
+    width:
+        13px;
+
+    height:
+        13px;
+
+    border:
+        2px solid #ffffff;
+
+    border-radius:
+        50%;
+
+    background:
+        var(--brand-600);
+
+    box-shadow:
+        0 0 0 3px rgba(62,107,90,0.20);
+
+    transform:
+        translate(-50%, -50%);
+}
+
+
+.circumplex-axis-label {
+
+    position:
+        absolute;
+
+    z-index:
+        2;
+
+    padding:
+        1px 4px;
+
+    border-radius:
+        4px;
+
+    background:
+        rgba(255,255,255,0.88);
+
+    color:
+        #738089;
+
+    font-size:
+        9px;
+
+    pointer-events:
+        none;
+}
+
+
+.axis-positive {
+    right: 5px;
+    top: 52%;
+}
+
+
+.axis-negative {
+    left: 5px;
+    top: 52%;
+}
+
+
+.axis-high {
+    top: 5px;
+    left: 52%;
+}
+
+
+.axis-low {
+    bottom: 5px;
+    left: 52%;
+}
+
+
+/* ==========================================================
+   Alerts
+   ========================================================== */
+
+.admin-app .alert {
+
+    border:
+        1px solid var(--border)
+        !important;
+
+    border-radius:
+        9px
+        !important;
+
+    background:
+        #ffffff;
+
+    color:
+        var(--text-secondary);
+
+    font-size:
+        11px;
+}
+
+
+.admin-app .alert-warning {
+
+    border-color:
+        #e6d7bd
+        !important;
+
+    background:
+        var(--warning-50)
+        !important;
+
+    color:
+        var(--warning-700)
+        !important;
+}
+
+
+/* ==========================================================
+   Word cloud
+   ========================================================== */
+
+#wordcloud-container span {
+
+    padding:
+        4px 6px;
+
+    border-radius:
+        6px;
+
+    font-family:
+        inherit;
+
+    font-weight:
+        600;
+
+    cursor:
+        default;
+}
+
+
+#wordcloud-container span:hover {
+
+    background:
+        #edf3f0;
+}
+
+
+/* ==========================================================
+   Scrollbar
+   ========================================================== */
+
+.admin-app * {
+
+    scrollbar-width:
+        thin;
+
+    scrollbar-color:
+        #c8d1cd transparent;
+}
+
+
+.admin-app *::-webkit-scrollbar {
+
+    width:
+        7px;
+
+    height:
+        7px;
+}
+
+
+.admin-app *::-webkit-scrollbar-thumb {
+
+    background:
+        #c8d1cd;
+
+    border-radius:
+        999px;
+}
+
+
+.admin-app *::-webkit-scrollbar-track {
+
+    background:
+        transparent;
+}
+
+
+/* ==========================================================
+   Responsive
+   ========================================================== */
+
+@media (max-width: 1200px) {
+
+    .main-content {
+
+        padding:
+            28px 28px 42px;
+    }
+
+}
+
+
+@media (max-width: 991.98px) {
+
+    :root {
+
+        --sidebar-width:
+            78px;
+    }
+
+
+    .sidebar {
+
+        padding-inline:
+            11px;
+    }
+
+
+    .brand-copy,
+    .sidebar-link span,
+    .sidebar-footer span {
+
+        display:
+            none;
+    }
+
+
+    .sidebar-brand {
+
+        justify-content:
+            center;
+
+        padding:
+            0;
+    }
+
+
+    .sidebar-link {
+
+        justify-content:
+            center;
+
+        padding:
+            0;
+    }
+
+
+    .sidebar-link i {
+
+        width:
+            auto;
+
+        font-size:
+            17px;
+    }
+
+
+    .sidebar-footer {
+
+        justify-content:
+            center;
+
+        padding-inline:
+            0;
+    }
+
+
+    .main-content {
+
+        padding:
+            24px 22px 36px;
+    }
+
+}
+
+
+@media (max-width: 767.98px) {
+
+    .app-header {
+
+        flex-direction:
+            column;
+    }
+
+
+    .main-content {
+
+        padding:
+            20px 16px 32px;
+    }
+
+}
+
+/* ==========================================================
+   Page Header
+   強化「頁面標題」與「內容區塊」的視覺層級
+   ========================================================== */
+
+.admin-app .app-header {
+
+    position:
+        relative;
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        flex-start;
+
+    gap:
+        28px;
+
+
+    /*
+       與下方真正功能內容拉開距離
+    */
+
+    margin-bottom:
+        32px;
+
+
+    /*
+       Header 變成自己的視覺容器
+    */
+
+    padding:
+        21px 23px;
+
+
+    border:
+        1px solid #dbe4e0;
+
+    border-left:
+        4px solid
+        var(--brand-500);
+
+    border-radius:
+        12px;
+
+
+    /*
+       不再只靠一條底線區隔
+    */
+
+    background:
+        linear-gradient(
+            100deg,
+            var(--brand-50) 0%,
+            #ffffff 58%,
+            #fbfcfb 100%
+        );
+
+
+    box-shadow:
+        0 1px 2px
+        rgba(16, 24, 40, 0.025);
+
+
+    /*
+       蓋掉舊版 app-header border-bottom
+    */
+
+    border-bottom:
+        1px solid #dbe4e0;
+}
+
+
+
+/* ==========================================================
+   Header main content
+   ========================================================== */
+
+.admin-app .app-header-main {
+
+    min-width:
+        0;
+}
+
+
+
+/* ==========================================================
+   Eyebrow
+   ========================================================== */
+
+.admin-app .app-eyebrow {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        8px;
+
+
+    margin-bottom:
+        8px;
+
+
+    color:
+        var(--brand-600);
+
+
+    font-size:
+        10.5px;
+
+    font-weight:
+        700;
+
+
+    letter-spacing:
+        0.08em;
+}
+
+
+/*
+   小型視覺標記
+*/
+
+.admin-app .app-eyebrow::before {
+
+    width:
+        18px;
+
+    height:
+        2px;
+
+
+    border-radius:
+        999px;
+
+
+    background:
+        var(--brand-500);
+
+
+    content:
+        "";
+}
+
+
+
+/* ==========================================================
+   Main page title
+   ========================================================== */
+
+.admin-app .app-page-title {
+
+    margin:
+        0;
+
+
+    color:
+        #17201c;
+
+
+    font-size:
+        29px;
+
+
+    line-height:
+        1.24;
+
+
+    font-weight:
+        720;
+
+
+    letter-spacing:
+        -0.035em;
+}
+
+
+
+/* ==========================================================
+   Description
+   ========================================================== */
+
+.admin-app .app-page-description {
+
+    max-width:
+        650px;
+
+
+    margin:
+        8px 0 0;
+
+
+    color:
+        #65716b;
+
+
+    font-size:
+        12px;
+
+
+    line-height:
+        1.65;
+}
+
+
+
+/* ==========================================================
+   Status
+   ========================================================== */
+
+.admin-app .app-header-meta {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        flex-end;
+
+    flex:
+        0 0 auto;
+}
+
+
+.admin-app .app-header .status-pill {
+
+    min-height:
+        34px;
+
+
+    padding:
+        7px 11px;
+
+
+    border:
+        1px solid #d7e1dc;
+
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.82
+        );
+
+
+    box-shadow:
+        0 1px 2px
+        rgba(
+            16,
+            24,
+            40,
+            0.025
+        );
+}
+
+
+
+/* ==========================================================
+   Header 與第一個頁面內容再多一層距離控制
+   ========================================================== */
+
+.admin-app
+.main-content
+> [id^="section-"] {
+
+    animation:
+        adminSectionFade
+        160ms
+        ease;
+}
+
+
+@keyframes adminSectionFade {
+
+    from {
+
+        opacity:
+            0;
+
+        transform:
+            translateY(3px);
+
+    }
+
+
+    to {
+
+        opacity:
+            1;
+
+        transform:
+            translateY(0);
+
+    }
+
+}
+
+
+
+/* ==========================================================
+   Responsive
+   ========================================================== */
+
+@media (
+    max-width: 767.98px
+) {
+
+    .admin-app .app-header {
+
+        flex-direction:
+            column;
+
+
+        gap:
+            16px;
+
+
+        margin-bottom:
+            24px;
+
+
+        padding:
+            18px;
+    }
+
+
+    .admin-app .app-page-title {
+
+        font-size:
+            25px;
+    }
+
+
+    .admin-app .app-header-meta {
+
+        justify-content:
+            flex-start;
+    }
+
+}
+
+/* ==========================================================
+   JD-R ANALYSIS SECTION
+   ========================================================== */
+
+.jdr-analysis-section {
+
+    margin-top:
+        30px;
+
+}
+
+
+
+/* ==========================================================
+   JD-R Section Header
+   ========================================================== */
+
+.jdr-section-header {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        flex-end;
+
+    gap:
+        24px;
+
+    margin-bottom:
+        18px;
+
+    padding-left:
+        14px;
+
+    border-left:
+        3px
+        solid
+        var(--admin-warning);
+
+}
+
+
+.jdr-section-eyebrow {
+
+    margin-bottom:
+        4px;
+
+    color:
+        #9a6a2f;
+
+    font-size:
+        10.5px;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        0.08em;
+
+}
+
+
+.jdr-section-title {
+
+    margin:
+        0;
+
+    color:
+        var(--admin-text);
+
+    font-size:
+        19px
+        !important;
+
+    font-weight:
+        700;
+
+}
+
+
+.jdr-section-description {
+
+    max-width:
+        760px;
+
+    margin:
+        6px
+        0
+        0;
+
+    color:
+        var(--admin-text-secondary);
+
+    font-size:
+        12px;
+
+    line-height:
+        1.65;
+
+}
+
+
+
+/* ==========================================================
+   JD-R Scope
+   ========================================================== */
+
+.jdr-scope-summary {
+
+    flex:
+        0
+        0
+        auto;
+
+    min-width:
+        130px;
+
+    text-align:
+        right;
+
+}
+
+
+.jdr-scope-label {
+
+    margin-bottom:
+        3px;
+
+    color:
+        var(--admin-text-tertiary);
+
+    font-size:
+        10.5px;
+
+    font-weight:
+        600;
+
+}
+
+
+.jdr-scope-value {
+
+    color:
+        var(--admin-text);
+
+    font-size:
+        15px;
+
+    font-weight:
+        700;
+
+}
+
+
+
+/* ==========================================================
+   JD-R Filter Card
+   ========================================================== */
+
+.jdr-filter-card {
+
+    margin-bottom:
+        20px;
+
+    padding:
+        18px
+        20px;
+
+    border:
+        1px
+        solid
+        #e0e5e2;
+
+    border-radius:
+        var(--admin-radius);
+
+    background:
+        #ffffff;
+
+    box-shadow:
+        var(--admin-shadow);
+
+}
+
+
+.jdr-filter-header {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        flex-start;
+
+    gap:
+        20px;
+
+    margin-bottom:
+        16px;
+
+}
+
+
+.jdr-filter-title {
+
+    color:
+        var(--admin-text);
+
+    font-size:
+        14px;
+
+    font-weight:
+        700;
+
+}
+
+
+.jdr-filter-description {
+
+    margin-top:
+        3px;
+
+    color:
+        var(--admin-text-secondary);
+
+    font-size:
+        11px;
+
+}
+
+
+.jdr-filter-label {
+
+    display:
+        block;
+
+    margin-bottom:
+        6px;
+
+    color:
+        #52605a;
+
+    font-size:
+        11px;
+
+    font-weight:
+        650;
+
+}
+
+
+.jdr-date-range {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto
+        minmax(0, 1fr);
+
+    align-items:
+        center;
+
+    gap:
+        7px;
+
+}
+
+
+.jdr-date-separator {
+
+    color:
+        var(--admin-text-tertiary);
+
+    font-size:
+        11px;
+
+}
+
+
+.jdr-filter-note {
+
+    margin-top:
+        15px;
+
+    padding-top:
+        13px;
+
+    border-top:
+        1px
+        solid
+        #edf0ee;
+
+    color:
+        var(--admin-text-secondary);
+
+    font-size:
+        11px;
+
+    line-height:
+        1.65;
+
+}
+
+
+
+/* ==========================================================
+   JD-R Chart Cards
+   ========================================================== */
+
+.jdr-chart-card {
+
+    border-top:
+        2px
+        solid
+        #c9944d
+        !important;
+
+}
+
+
+.jdr-tag {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    flex:
+        0
+        0
+        auto;
+
+    padding:
+        5px
+        9px;
+
+    border:
+        1px
+        solid
+        #e2d2bb;
+
+    border-radius:
+        999px;
+
+    background:
+        #fffaf2;
+
+    color:
+        #765420;
+
+    font-size:
+        10.5px;
+
+    font-weight:
+        650;
+
+}
+
+
+.jdr-chart-footnote {
+
+    margin-top:
+        10px;
+
+    padding-top:
+        10px;
+
+    border-top:
+        1px
+        solid
+        #edf0ee;
+
+    color:
+        var(--admin-text-secondary);
+
+    font-size:
+        10.5px;
+
+    line-height:
+        1.6;
+
+}
+
+
+
+/* ==========================================================
+   JD-R Responsive
+   ========================================================== */
+
+@media (
+    max-width: 991.98px
+) {
+
+    .jdr-section-header {
+
+        align-items:
+            flex-start;
+
+    }
+
+
+    .jdr-scope-summary {
+
+        text-align:
+            left;
+
+    }
+
+}
+
+
+@media (
+    max-width: 767.98px
+) {
+
+    .jdr-section-header {
+
+        flex-direction:
+            column;
+
+    }
+
+
+    .jdr-filter-header {
+
+        flex-direction:
+            column;
+
+    }
+
+
+    .jdr-date-range {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .jdr-date-separator {
+
+        display:
+            none;
+
+    }
+
+}

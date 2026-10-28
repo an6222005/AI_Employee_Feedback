@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+.deployment
+.deploy-tools
+__pycache__
+**/__pycache__
+**/*.pyc
+**/*.bak*
+.preview-backups
+AI_Employee_Feedback
+*.csv
+*.png

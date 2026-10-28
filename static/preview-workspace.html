@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>工作台版面預覽</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #e9edf2; color: #314b67; font: 12px Arial, sans-serif; }
+        .review-toolbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #fff; border-bottom: 1px solid #dbe2ea; }
+        .review-toolbar span { margin-right: auto; font-size: 11px; }
+        button, a { font: inherit; text-decoration: none; color: #49627e; background: #fff; padding: 6px 9px; border: 1px solid #d9e1e9; border-radius: 4px; cursor: pointer; }
+        button[aria-pressed="true"] { background: #183652; color: #fff; border-color: #183652; }
+        button:focus-visible, a:focus-visible { outline: 3px solid #8aa9c9; outline-offset: 2px; }
+        .review-stage { margin: 12px; position: relative; overflow: hidden; }
+        iframe { display: block; border: 1px solid #d6dfe9; background: #fff; transform-origin: top left; }
+    </style>
+</head>
+<body>
+    <div class="review-toolbar"><span>實際介面 · 尺寸預覽</span><button id="desktop" aria-pressed="true" onclick="setPreviewSize(1440)">桌面</button><button id="mobile" aria-pressed="false" onclick="setPreviewSize(390)">手機</button><a href="/admin" target="_blank" rel="noopener">原尺寸開啟 ↗</a></div>
+    <div class="review-stage"><iframe src="/admin" title="員工體驗洞察實際介面預覽" width="1440" height="1200"></iframe></div>
+    <script>
+        let previewWidth = 1440;
+        const stage = document.querySelector('.review-stage');
+        const frame = document.querySelector('iframe');
+        function fitPreview() {
+            const scale = Math.min(1, stage.clientWidth / previewWidth);
+            frame.style.width = `${previewWidth}px`;
+            frame.style.height = `${previewWidth === 390 ? 860 : 1200}px`;
+            frame.style.transform = `scale(${scale})`;
+            stage.style.height = `${(previewWidth === 390 ? 860 : 1200) * scale}px`;
+        }
+        function setPreviewSize(width) {
+            previewWidth = width;
+            document.getElementById('desktop').setAttribute('aria-pressed', String(width === 1440));
+            document.getElementById('mobile').setAttribute('aria-pressed', String(width === 390));
+            fitPreview();
+        }
+        new ResizeObserver(fitPreview).observe(stage);
+        fitPreview();
+    </script>
+</body>
+</html>

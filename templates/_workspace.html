@@ -1,0 +1,46 @@
+<a class="skip-link" href="#workspace-main">跳到主要內容</a>
+<aside class="sidebar" aria-label="管理工作空間">
+    <a class="sidebar-brand" href="/admin" aria-label="員工體驗洞察首頁">
+        <span class="brand-mark" aria-hidden="true"><i class="bi bi-soundwave"></i></span>
+        <span class="brand-copy"><span class="brand-title">員工體驗洞察</span><span class="brand-subtitle">EMPLOYEE EXPERIENCE</span></span>
+    </a>
+    <div class="nav-group-label">工作空間</div>
+    <nav class="sidebar-nav" aria-label="後台功能選單">
+        <button id="nav-dashboard" class="sidebar-link active" type="button" onclick="switchTab('dashboard')" aria-current="page"><i class="bi bi-grid-1x2" aria-hidden="true"></i><span>總覽與分析</span><span class="nav-active-mark" aria-hidden="true"></span></button>
+        <button id="nav-table" class="sidebar-link" type="button" onclick="switchTab('table')"><i class="bi bi-chat-square-text" aria-hidden="true"></i><span>員工回饋</span></button>
+        <div class="nav-divider"></div>
+        <div class="nav-group-label nav-secondary-label">管理工具</div>
+        <button id="nav-airules" class="sidebar-link" type="button" onclick="switchTab('airules')"><i class="bi bi-sliders2" aria-hidden="true"></i><span>語意規則</span></button>
+        <button id="nav-recycle" class="sidebar-link" type="button" onclick="switchTab('recycle')"><i class="bi bi-archive" aria-hidden="true"></i><span>回收桶</span></button>
+    </nav>
+    <div class="sidebar-bottom">
+        <a class="employee-entry" href="/" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>開啟員工回饋入口</span></a>
+        <div class="workspace-identity"><span class="account-avatar" aria-hidden="true">HR</span><div><strong>人資工作空間</strong><span>管理介面</span></div></div>
+    </div>
+</aside>
+
+<main class="main-content" id="workspace-main" tabindex="-1">
+    <div class="workspace-bar">
+        <div class="workspace-breadcrumb"><i class="bi bi-building" aria-hidden="true"></i><span>人資工作空間</span><i class="bi bi-chevron-right" aria-hidden="true"></i><strong id="breadcrumb-current">總覽與分析</strong></div>
+        <span class="preview-badge"><span aria-hidden="true"></span>獨立測試環境</span>
+    </div>
+    <div class="workspace-content">
+        <header class="app-header">
+            <div class="app-header-main">
+                <div class="app-eyebrow">EMPLOYEE EXPERIENCE / INSIGHTS</div>
+                <h1 id="page-title" class="app-page-title">員工體驗概覽</h1>
+                <p id="page-description" class="app-page-description">將團隊的聲音，轉化為更清晰的管理視角。</p>
+            </div>
+            <div class="app-header-meta">
+                <button class="workspace-button secondary" id="refresh-workspace" type="button" onclick="refreshWorkspace()"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i><span>更新資料</span></button>
+                <button class="workspace-button primary" id="header-feedback-action" type="button" onclick="switchTab('table')">檢視員工回饋<i class="bi bi-arrow-up-right" aria-hidden="true"></i></button>
+            </div>
+        </header>
+        <div id="workspace-load-status" class="workspace-load-status" role="status" aria-live="polite">正在讀取回饋資料…</div>
+        <div id="section-dashboard">{% include '_dashboard.html' %}</div>
+        <div id="section-table" style="display:none">{% include '_table.html' %}</div>
+        <div id="section-airules" style="display:none">{% include '_airules.html' %}</div>
+        <div id="section-recycle" style="display:none">{% include '_recycle.html' %}</div>
+        <footer class="workspace-footnote"><span>員工體驗洞察 · 人資分析工作台</span><span>分析結果供組織改善參考</span></footer>
+    </div>
+</main>

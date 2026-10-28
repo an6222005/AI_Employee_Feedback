@@ -1,0 +1,6941 @@
+<!-- =========================================================
+     員工體驗概覽 Dashboard
+     ========================================================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<style>
+    /* =====================================================
+       Dashboard only
+       ===================================================== */
+
+    .dashboard-section {
+        margin-bottom: 32px;
+    }
+
+    .dashboard-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 20px;
+        margin-bottom: 16px;
+    }
+
+    .dashboard-section-title {
+        margin: 0;
+        color: #18201c;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+
+    .dashboard-section-description {
+        margin-top: 5px;
+        color: #667085;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    /* KPI */
+
+    .metric-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .metric-card {
+        position: relative;
+        min-height: 142px;
+        padding: 20px;
+        overflow: hidden;
+        border:
+            1px solid #e4e7ec;
+        border-radius: 12px;
+        background:
+            #ffffff;
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, 0.04),
+            0 1px 3px rgba(16, 24, 40, 0.05);
+    }
+
+    .metric-card::before {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        content: "";
+        background:
+            #dce6e1;
+    }
+
+    .metric-card.metric-positive::before {
+        background:
+            #5e8b78;
+    }
+
+    .metric-card.metric-risk::before {
+        background:
+            #bf7777;
+    }
+
+    .metric-card.metric-warning::before {
+        background:
+            #c19961;
+    }
+
+    .metric-label {
+        color: #667085;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing:
+            0.02em;
+    }
+
+    .metric-value {
+        margin-top: 12px;
+        color: #18201c;
+        font-size: 30px;
+        line-height: 1.15;
+        font-weight: 700;
+        letter-spacing:
+            -0.035em;
+    }
+
+    .metric-value.metric-text {
+        font-size: 21px;
+        line-height: 1.3;
+    }
+
+    .metric-meta {
+        margin-top: 9px;
+        color: #98a2b3;
+        font-size: 11px;
+    }
+
+    /* Card */
+
+    .insight-card {
+        height: 100%;
+        padding: 20px;
+        border:
+            1px solid #e4e7ec;
+        border-radius: 12px;
+        background:
+            #ffffff;
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, 0.04),
+            0 1px 3px rgba(16, 24, 40, 0.05);
+    }
+
+    .insight-card-header {
+        display: flex;
+        justify-content:
+            space-between;
+        align-items:
+            flex-start;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .insight-card-title {
+        margin: 0;
+        color: #18201c;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .insight-card-description {
+        margin-top: 5px;
+        color: #667085;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .chart-container {
+        position: relative;
+        width: 100%;
+        height: 300px;
+    }
+
+    .chart-container.chart-large {
+        height: 350px;
+    }
+
+    .chart-container.chart-xl {
+        height: 390px;
+    }
+
+    /* Tiny action button */
+
+    .chart-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        flex: 0 0 30px;
+        padding: 0;
+        border:
+            1px solid #e4e7ec;
+        border-radius: 8px;
+        background:
+            #ffffff;
+        color:
+            #667085;
+        cursor: pointer;
+        transition:
+            background 0.15s ease,
+            border-color 0.15s ease,
+            color 0.15s ease;
+    }
+
+    .chart-action:hover {
+        background:
+            #f8faf9;
+        color:
+            #315a4b;
+        border-color:
+            #cdd8d3;
+    }
+
+    /* Current dashboard filter */
+
+    .dashboard-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    /*
+     * 固定篩選列高度。
+     * 有沒有篩選條件都佔同樣空間，
+     * 所以下面的 Dashboard 不會上下跳動。
+     */
+    height: 48px;
+    min-height: 48px;
+
+    margin-bottom: 18px;
+
+    padding: 8px 14px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    opacity: 1;
+    visibility: visible;
+
+    transition:
+        opacity 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease;
+}
+
+
+.dashboard-filter-empty {
+    color: #98a2b3;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+.dashboard-filter-bar button:disabled {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+}
+
+/*
+ * 左側篩選內容保持單行，
+ * 避免多個 badge 換行造成高度改變。
+ */
+.dashboard-filter-content {
+    display: flex;
+    align-items: center;
+
+    min-width: 0;
+
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+
+#current-filter-badges {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+
+    max-width: 100%;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    vertical-align: middle;
+
+    scrollbar-width: none;
+}
+
+
+#current-filter-badges::-webkit-scrollbar {
+    display: none;
+}
+    .dashboard-filter-label {
+        color:
+            #667085;
+        font-size:
+            11px;
+    }
+
+    /* Analysis summary metrics */
+
+    .analysis-metric-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .analysis-metric {
+        padding: 16px;
+        border:
+            1px solid #e4e7ec;
+        border-radius: 10px;
+        background:
+            #fbfcfb;
+    }
+
+    .analysis-metric-label {
+        color:
+            #667085;
+        font-size:
+            10px;
+        font-weight:
+            600;
+        letter-spacing:
+            0.025em;
+    }
+
+    .analysis-metric-value {
+        margin-top: 8px;
+        color:
+            #18201c;
+        font-size: 20px;
+        font-weight:
+            700;
+    }
+
+    .analysis-metric-note {
+        margin-top: 4px;
+        color:
+            #98a2b3;
+        font-size: 10px;
+    }
+
+    /* Heatmap */
+
+    #heatmap-table {
+        min-width: 760px;
+    }
+
+    #heatmap-table th {
+        white-space: nowrap;
+    }
+
+    #heatmap-table td {
+        height: 48px;
+        vertical-align: middle;
+    }
+
+    /* Word cloud */
+
+    #wordcloud-container {
+        min-height: 230px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 22px;
+        border:
+            1px solid #edf0f2;
+        border-radius: 10px;
+        background:
+            #fafcfb;
+    }
+
+    /* Trend filters */
+
+    .trend-filter {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px;
+        border:
+            1px solid #e4e7ec;
+        border-radius: 9px;
+        background:
+            #f8faf9;
+    }
+
+    .trend-filter .form-control {
+        width: 132px;
+        min-height: 32px;
+        border: 0;
+        background:
+            transparent;
+        font-size: 11px;
+    }
+
+    /* =====================================================
+       Enhanced trend controls
+       ===================================================== */
+
+    .trend-toolbar {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        min-width: 0;
+    }
+
+
+    .trend-toolbar-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+
+    .trend-toolbar-label {
+        color: #667085;
+        font-size: 10.5px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+
+    .trend-chip-group,
+    .trend-mode-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+
+    .trend-chip,
+    .trend-mode-btn,
+    .trend-preset-btn {
+        min-height: 31px;
+        padding: 5px 10px;
+
+        border:
+            1px solid #dfe4e1;
+
+        border-radius: 8px;
+
+        background:
+            #ffffff;
+
+        color:
+            #667085;
+
+        font-size:
+            10.5px;
+
+        font-weight:
+            600;
+
+        line-height:
+            1;
+
+        cursor:
+            pointer;
+
+        transition:
+            background 0.15s ease,
+            border-color 0.15s ease,
+            color 0.15s ease,
+            box-shadow 0.15s ease;
+    }
+
+
+    .trend-chip:hover,
+    .trend-mode-btn:hover,
+    .trend-preset-btn:hover {
+        border-color:
+            #b9c8c1;
+
+        background:
+            #f8faf9;
+
+        color:
+            #315a4b;
+    }
+
+
+    .trend-chip.is-selected {
+        background:
+            #eef5f1;
+
+        border-color:
+            #a9c0b6;
+
+        color:
+            #315a4b;
+
+        box-shadow:
+            inset 0 0 0 1px
+            rgba(79, 131, 109, 0.05);
+    }
+
+
+    .trend-chip.is-selected::before {
+        margin-right:
+            5px;
+
+        content:
+            "✓";
+
+        font-weight:
+            700;
+    }
+
+
+    .trend-mode-btn.is-active {
+        background:
+            #315a4b;
+
+        border-color:
+            #315a4b;
+
+        color:
+            #ffffff;
+    }
+
+
+    .trend-toolbar-divider {
+        width:
+            1px;
+
+        height:
+            22px;
+
+        margin:
+            0 2px;
+
+        background:
+            #e4e7ec;
+    }
+
+
+    .trend-filter {
+        padding:
+            3px 5px;
+    }
+
+
+    .trend-filter .form-control {
+        width:
+            128px;
+    }
+
+
+    @media (max-width: 1199px) {
+
+        .trend-toolbar {
+            width:
+                100%;
+
+            align-items:
+                flex-start;
+        }
+
+
+        .trend-toolbar-row {
+            justify-content:
+                flex-start;
+        }
+
+    }
+
+
+    /* Analysis note */
+
+    .analysis-disclaimer {
+        padding:
+            12px 14px;
+        border:
+            1px solid #e4e7ec;
+        border-left:
+            3px solid #98aaa2;
+        border-radius: 8px;
+        background:
+            #fafcfb;
+        color:
+            #667085;
+        font-size: 11px;
+        line-height: 1.6;
+    }
+
+    /* Drag */
+
+    .drag-handle {
+        color:
+            #b9c1c8;
+        cursor:
+            grab;
+    }
+
+    .drag-handle:hover {
+        color:
+            #667085;
+    }
+
+    .sortable-ghost {
+        opacity:
+            0.5;
+        background:
+            #f5f7f6;
+    }
+
+    /* Responsive */
+
+    @media (max-width: 1199px) {
+
+        .metric-grid,
+        .analysis-metric-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+    @media (max-width: 767px) {
+
+        .metric-grid,
+        .analysis-metric-grid {
+            grid-template-columns:
+                1fr;
+        }
+
+        .dashboard-section-header {
+            align-items:
+                flex-start;
+            flex-direction:
+                column;
+        }
+
+        .trend-filter {
+            width:
+                100%;
+            flex-wrap:
+                wrap;
+        }
+
+    }
+
+
+    /* =====================================================
+       JD-R filters
+       ===================================================== */
+
+    .jdr-filter-card {
+        margin-bottom: 16px;
+        padding: 16px;
+        border: 1px solid #e4e7ec;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, 0.04),
+            0 1px 3px rgba(16, 24, 40, 0.05);
+    }
+
+    .jdr-filter-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+    }
+
+    .jdr-filter-title {
+        color: #18201c;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .jdr-filter-description {
+        margin-top: 3px;
+        color: #667085;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .jdr-filter-grid {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr)
+            minmax(0, 1fr)
+            minmax(260px, 1.35fr);
+        gap: 12px;
+        align-items: end;
+    }
+
+    .jdr-filter-field {
+        min-width: 0;
+    }
+
+    .jdr-filter-label {
+        display: block;
+        margin-bottom: 6px;
+        color: #667085;
+        font-size: 10.5px;
+        font-weight: 600;
+    }
+
+    .jdr-filter-card .form-select,
+    .jdr-filter-card .form-control {
+        min-height: 36px;
+        border-color: #dfe4e1;
+        background-color: #ffffff;
+        color: #344054;
+        font-size: 11.5px;
+    }
+
+    .jdr-filter-card .form-select:focus,
+    .jdr-filter-card .form-control:focus {
+        border-color: #9bb6aa;
+        box-shadow:
+            0 0 0 0.15rem rgba(79, 131, 109, 0.10);
+    }
+
+    .jdr-date-range {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto
+            minmax(0, 1fr);
+        align-items: center;
+        gap: 7px;
+    }
+
+    .jdr-date-separator {
+        color: #98a2b3;
+        font-size: 10.5px;
+    }
+
+    .jdr-filter-note {
+        margin-top: 13px;
+        padding-top: 11px;
+        border-top: 1px solid #edf0f2;
+        color: #667085;
+        font-size: 10.5px;
+        line-height: 1.6;
+    }
+
+    .jdr-filter-result {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .jdr-filter-result-label {
+        color: #98a2b3;
+        font-size: 10.5px;
+        font-weight: 600;
+    }
+
+    .jdr-filter-result-value {
+        color: #18201c;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .jdr-evidence-footnote {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #edf0f2;
+        color: #667085;
+        font-size: 10.5px;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 1199px) {
+
+        .jdr-filter-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+    @media (max-width: 767px) {
+
+        .jdr-filter-header {
+            flex-direction:
+                column;
+        }
+
+        .jdr-filter-grid {
+            grid-template-columns:
+                1fr;
+        }
+
+        .jdr-date-range {
+            grid-template-columns:
+                1fr;
+        }
+
+        .jdr-date-separator {
+            display:
+                none;
+        }
+
+    }
+
+
+    /* =====================================================
+       JD-R diagnostic
+       ===================================================== */
+
+    .jdr-balance-footnote {
+        margin-top: 10px;
+        padding-top: 10px;
+
+        border-top:
+            1px solid #edf0f2;
+
+        color:
+            #667085;
+
+        font-size:
+            10.5px;
+
+        line-height:
+            1.6;
+    }
+
+
+    .jdr-diagnostic-panel {
+        margin-top:
+            16px;
+
+        padding:
+            18px;
+
+        border:
+            1px solid #e4e7ec;
+
+        border-radius:
+            12px;
+
+        background:
+            #ffffff;
+
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, 0.04),
+            0 1px 3px rgba(16, 24, 40, 0.05);
+    }
+
+
+    .jdr-diagnostic-header {
+        display:
+            flex;
+
+        align-items:
+            flex-start;
+
+        justify-content:
+            space-between;
+
+        gap:
+            16px;
+
+        margin-bottom:
+            14px;
+    }
+
+
+    .jdr-diagnostic-title {
+        color:
+            #18201c;
+
+        font-size:
+            13px;
+
+        font-weight:
+            700;
+    }
+
+
+    .jdr-diagnostic-description {
+        margin-top:
+            4px;
+
+        color:
+            #667085;
+
+        font-size:
+            10.5px;
+
+        line-height:
+            1.5;
+    }
+
+
+    .jdr-diagnostic-reset {
+        min-height:
+            32px;
+
+        padding:
+            5px 10px;
+
+        border:
+            1px solid #dfe4e1;
+
+        border-radius:
+            8px;
+
+        background:
+            #ffffff;
+
+        color:
+            #667085;
+
+        font-size:
+            10.5px;
+
+        font-weight:
+            600;
+
+        cursor:
+            pointer;
+    }
+
+
+    .jdr-diagnostic-reset:hover {
+        border-color:
+            #b9c8c1;
+
+        background:
+            #f8faf9;
+
+        color:
+            #315a4b;
+    }
+
+
+    .jdr-diagnostic-reset:disabled {
+        opacity:
+            0.45;
+
+        cursor:
+            default;
+
+        pointer-events:
+            none;
+    }
+
+
+    .jdr-diagnostic-metrics {
+        display:
+            grid;
+
+        grid-template-columns:
+            repeat(
+                4,
+                minmax(0, 1fr)
+            );
+
+        gap:
+            10px;
+
+        margin-bottom:
+            14px;
+    }
+
+
+    .jdr-diagnostic-metric {
+        padding:
+            12px;
+
+        border:
+            1px solid #edf0f2;
+
+        border-radius:
+            10px;
+
+        background:
+            #fbfcfb;
+    }
+
+
+    .jdr-diagnostic-metric-label {
+        color:
+            #667085;
+
+        font-size:
+            10px;
+
+        font-weight:
+            600;
+    }
+
+
+    .jdr-diagnostic-metric-value {
+        margin-top:
+            6px;
+
+        color:
+            #18201c;
+
+        font-size:
+            18px;
+
+        font-weight:
+            700;
+    }
+
+
+    .jdr-diagnostic-grid {
+        display:
+            grid;
+
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+
+        gap:
+            12px;
+    }
+
+
+    .jdr-diagnostic-list-card {
+        padding:
+            13px;
+
+        border:
+            1px solid #edf0f2;
+
+        border-radius:
+            10px;
+
+        background:
+            #ffffff;
+    }
+
+
+    .jdr-diagnostic-list-title {
+        margin-bottom:
+            8px;
+
+        color:
+            #344054;
+
+        font-size:
+            10.5px;
+
+        font-weight:
+            700;
+    }
+
+
+    .jdr-diagnostic-list {
+        display:
+            flex;
+
+        flex-wrap:
+            wrap;
+
+        gap:
+            6px;
+    }
+
+
+    .jdr-diagnostic-pill {
+        display:
+            inline-flex;
+
+        align-items:
+            center;
+
+        gap:
+            5px;
+
+        padding:
+            5px 8px;
+
+        border-radius:
+            999px;
+
+        background:
+            #f4f7f5;
+
+        color:
+            #475467;
+
+        font-size:
+            10px;
+
+        line-height:
+            1.2;
+    }
+
+
+    .jdr-diagnostic-pill strong {
+        color:
+            #18201c;
+
+        font-weight:
+            700;
+    }
+
+
+    .jdr-diagnostic-interpretation {
+        margin-top:
+            12px;
+
+        padding:
+            12px 14px;
+
+        border-left:
+            3px solid #789487;
+
+        border-radius:
+            8px;
+
+        background:
+            #f8faf9;
+
+        color:
+            #475467;
+
+        font-size:
+            10.5px;
+
+        line-height:
+            1.65;
+    }
+
+
+    @media (max-width: 991px) {
+
+        .jdr-diagnostic-metrics {
+            grid-template-columns:
+                repeat(
+                    2,
+                    minmax(0, 1fr)
+                );
+        }
+
+    }
+
+
+    @media (max-width: 767px) {
+
+        .jdr-diagnostic-header {
+            flex-direction:
+                column;
+        }
+
+
+        .jdr-diagnostic-metrics,
+        .jdr-diagnostic-grid {
+            grid-template-columns:
+                1fr;
+        }
+
+    }
+
+
+    /* =====================================================
+       Russell local filters
+       ===================================================== */
+
+    .affect-scope-card {
+        margin-bottom: 16px;
+        padding: 14px 16px;
+
+        border:
+            1px solid #e4e7ec;
+
+        border-radius:
+            12px;
+
+        background:
+            #ffffff;
+    }
+
+
+    .affect-scope-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+
+        gap:
+            16px;
+
+        margin-bottom:
+            12px;
+    }
+
+
+    .affect-scope-title {
+        color:
+            #18201c;
+
+        font-size:
+            12.5px;
+
+        font-weight:
+            700;
+    }
+
+
+    .affect-scope-description {
+        margin-top:
+            3px;
+
+        color:
+            #667085;
+
+        font-size:
+            10.5px;
+
+        line-height:
+            1.5;
+    }
+
+
+    .affect-filter-result {
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            6px;
+
+        white-space:
+            nowrap;
+    }
+
+
+    .affect-filter-result-label {
+        color:
+            #98a2b3;
+
+        font-size:
+            10.5px;
+
+        font-weight:
+            600;
+    }
+
+
+    .affect-filter-result-value {
+        color:
+            #18201c;
+
+        font-size:
+            12.5px;
+
+        font-weight:
+            700;
+    }
+
+
+    .affect-quadrant-group {
+        display:
+            flex;
+
+        align-items:
+            center;
+
+        gap:
+            6px;
+
+        flex-wrap:
+            wrap;
+
+        margin-bottom:
+            12px;
+    }
+
+
+    .affect-quadrant-label,
+    .affect-range-label {
+        color:
+            #667085;
+
+        font-size:
+            10.5px;
+
+        font-weight:
+            600;
+    }
+
+
+    .affect-quadrant-label {
+        margin-right:
+            3px;
+    }
+
+
+    .affect-quadrant-btn {
+        min-height:
+            31px;
+
+        padding:
+            5px 10px;
+
+        border:
+            1px solid #dfe4e1;
+
+        border-radius:
+            8px;
+
+        background:
+            #ffffff;
+
+        color:
+            #667085;
+
+        font-size:
+            10.5px;
+
+        font-weight:
+            600;
+
+        cursor:
+            pointer;
+
+        transition:
+            background 0.15s ease,
+            border-color 0.15s ease,
+            color 0.15s ease;
+    }
+
+
+    .affect-quadrant-btn:hover {
+        border-color:
+            #b9c8c1;
+
+        background:
+            #f8faf9;
+
+        color:
+            #315a4b;
+    }
+
+
+    .affect-quadrant-btn.is-active {
+        border-color:
+            #315a4b;
+
+        background:
+            #315a4b;
+
+        color:
+            #ffffff;
+    }
+
+
+    .affect-range-grid {
+        display:
+            grid;
+
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+
+        gap:
+            12px;
+    }
+
+
+    .affect-range-label {
+        display:
+            block;
+
+        margin-bottom:
+            6px;
+    }
+
+
+    .affect-range-pair {
+        display:
+            grid;
+
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto
+            minmax(0, 1fr);
+
+        align-items:
+            center;
+
+        gap:
+            7px;
+    }
+
+
+    .affect-range-pair .form-select {
+        min-height:
+            34px;
+
+        border-color:
+            #dfe4e1;
+
+        background-color:
+            #ffffff;
+
+        color:
+            #344054;
+
+        font-size:
+            11px;
+    }
+
+
+    .affect-range-separator {
+        color:
+            #98a2b3;
+
+        font-size:
+            10.5px;
+    }
+
+
+    .affect-range-note {
+        margin-top:
+            10px;
+
+        color:
+            #98a2b3;
+
+        font-size:
+            10px;
+
+        line-height:
+            1.55;
+    }
+
+
+    @media (max-width: 767px) {
+
+        .affect-scope-header {
+            flex-direction:
+                column;
+        }
+
+
+        .affect-range-grid {
+            grid-template-columns:
+                1fr;
+        }
+
+    }
+
+
+    /* =====================================================
+       Global / local analysis scope
+       ===================================================== */
+
+    .scope-filter-card {
+        margin-bottom: 18px;
+        padding: 16px;
+        border: 1px solid #e4e7ec;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow:
+            0 1px 2px rgba(16, 24, 40, 0.04),
+            0 1px 3px rgba(16, 24, 40, 0.05);
+    }
+
+    .scope-filter-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+    }
+
+    .scope-filter-title {
+        color: #18201c;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .scope-filter-description {
+        margin-top: 3px;
+        color: #667085;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .scope-filter-grid {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr)
+            minmax(260px, 1.35fr);
+        gap: 12px;
+        align-items: end;
+    }
+
+    .scope-filter-field {
+        min-width: 0;
+    }
+
+    .scope-filter-label {
+        display: block;
+        margin-bottom: 6px;
+        color: #667085;
+        font-size: 10.5px;
+        font-weight: 600;
+    }
+
+    .scope-filter-card .form-select,
+    .scope-filter-card .form-control {
+        min-height: 36px;
+        border-color: #dfe4e1;
+        background-color: #ffffff;
+        color: #344054;
+        font-size: 11.5px;
+    }
+
+    .scope-filter-card .form-select:focus,
+    .scope-filter-card .form-control:focus {
+        border-color: #9bb6aa;
+        box-shadow:
+            0 0 0 0.15rem rgba(79, 131, 109, 0.10);
+    }
+
+    .scope-filter-result {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .scope-filter-result-label {
+        color: #98a2b3;
+        font-size: 10.5px;
+        font-weight: 600;
+    }
+
+    .scope-filter-result-value {
+        color: #18201c;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .scope-date-range {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto
+            minmax(0, 1fr);
+        align-items: center;
+        gap: 7px;
+    }
+
+    .scope-date-separator {
+        color: #98a2b3;
+        font-size: 10.5px;
+    }
+
+    .scope-local-filter {
+        margin-bottom: 16px;
+    }
+
+    @media (max-width: 1199px) {
+
+        .scope-filter-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+    @media (max-width: 767px) {
+
+        .scope-filter-header {
+            flex-direction: column;
+        }
+
+        .scope-filter-grid {
+            grid-template-columns:
+                1fr;
+        }
+
+        .scope-date-range {
+            grid-template-columns:
+                1fr;
+        }
+
+        .scope-date-separator {
+            display: none;
+        }
+
+    }
+
+</style>
+
+
+<!-- ========================================================= -->
+<!-- Global analysis scope -->
+<!-- ========================================================= -->
+
+{% include '_dashboard_navigation.html' %}
+<section class="dashboard-section scope-section">
+
+    <div class="scope-filter-card">
+
+        <div class="scope-filter-header">
+
+            <div>
+
+                <div class="scope-filter-title">
+                    分析範圍
+                </div>
+
+                <div class="scope-filter-description">
+                    選擇部門、議題與日期，套用至所有分析視角。
+                </div>
+
+            </div>
+
+
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                <div class="scope-filter-result">
+
+                    <span class="scope-filter-result-label">
+                        目前分析
+                    </span>
+
+                    <span
+                        id="global-filter-result-count"
+                        class="scope-filter-result-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    onclick="clearGlobalFilters()"
+                >
+                    重設範圍
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="scope-filter-grid">
+
+            <div class="scope-filter-field">
+
+                <label
+                    for="global-filter-department"
+                    class="scope-filter-label"
+                >
+                    部門
+                </label>
+
+                <select
+                    id="global-filter-department"
+                    class="form-select form-select-sm"
+                    onchange="handleGlobalFilterChange()"
+                >
+                    <option value="">
+                        全部部門
+                    </option>
+                </select>
+
+            </div>
+
+
+            <div class="scope-filter-field">
+
+                <label
+                    for="global-filter-category"
+                    class="scope-filter-label"
+                >
+                    議題分類
+                </label>
+
+                <select
+                    id="global-filter-category"
+                    class="form-select form-select-sm"
+                    onchange="handleGlobalFilterChange()"
+                >
+                    <option value="">
+                        全部議題
+                    </option>
+                </select>
+
+            </div>
+
+
+            <div class="scope-filter-field">
+
+                <label class="scope-filter-label">
+                    日期區間
+                </label>
+
+                <div class="scope-date-range">
+
+                    <input
+                        id="global-filter-start-date"
+                        type="date"
+                        class="form-control form-control-sm"
+                        onchange="handleGlobalFilterChange()"
+                        aria-label="全域開始日期"
+                    >
+
+                    <span class="scope-date-separator">
+                        至
+                    </span>
+
+                    <input
+                        id="global-filter-end-date"
+                        type="date"
+                        class="form-control form-control-sm"
+                        onchange="handleGlobalFilterChange()"
+                        aria-label="全域結束日期"
+                    >
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ========================================================= -->
+<!-- KPI -->
+<!-- ========================================================= -->
+
+<div id="analysis-panel-overview" data-analysis-panel="overview" role="tabpanel" aria-labelledby="analysis-tab-overview" tabindex="0">
+<section class="dashboard-section">
+
+    <div class="dashboard-section-header">
+
+        <div>
+
+            <h2 class="dashboard-section-title">
+                數據概況
+            </h2>
+
+            <div class="dashboard-section-description">
+                快速掌握目前員工回饋量、情緒傾向與優先關注議題。
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="metric-grid">
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                <span class="metric-icon" aria-hidden="true"><i class="bi bi-chat-square-text"></i></span>
+                回饋總數
+            </div>
+
+            <div
+                id="kpi-total"
+                class="metric-value"
+            >
+                0
+            </div>
+
+            <div class="metric-meta">
+                目前篩選條件下的回饋筆數
+            </div>
+
+        </div>
+
+
+        <div
+            class="
+                metric-card
+                metric-positive
+            "
+        >
+
+            <div class="metric-label">
+                <span class="metric-icon" aria-hidden="true"><i class="bi bi-emoji-smile"></i></span>
+                正向回饋比例
+            </div>
+
+            <div
+                id="kpi-health"
+                class="metric-value"
+            >
+                0%
+            </div>
+
+            <div class="metric-meta">
+                正面回饋占目前回饋的比例
+            </div>
+
+        </div>
+
+
+        <div
+            class="
+                metric-card
+                metric-risk
+            "
+        >
+
+            <div class="metric-label">
+                <span class="metric-icon" aria-hidden="true"><i class="bi bi-flag"></i></span>
+                主要負向議題
+            </div>
+
+            <div
+                id="kpi-painpoint"
+                class="
+                    metric-value
+                    metric-text
+                "
+            >
+                暫無
+            </div>
+
+            <div class="metric-meta">
+                負面回饋中出現最多的議題
+            </div>
+
+        </div>
+
+
+        <div
+            class="
+                metric-card
+                metric-warning
+            "
+        >
+
+            <div class="metric-label">
+                <span class="metric-icon" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+                需優先關注部門
+            </div>
+
+            <div
+                id="kpi-dept"
+                class="
+                    metric-value
+                    metric-text
+                "
+            >
+                暫無
+            </div>
+
+            <div class="metric-meta">
+                負面回饋筆數較高的部門
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+{% include '_dashboard_brief.html' %}
+
+<!-- ========================================================= -->
+<!-- Overview local filter status -->
+<!-- ========================================================= -->
+
+<div
+    id="filter-status-row"
+    class="dashboard-filter-bar scope-local-filter"
+>
+
+    <div class="dashboard-filter-content">
+
+        <span class="dashboard-filter-label">
+            組織概況條件：
+        </span>
+
+        <span id="current-filter-badges"></span>
+
+    </div>
+
+
+    <button
+        type="button"
+        class="
+            btn
+            btn-sm
+            btn-outline-secondary
+        "
+        onclick="clearOverviewFilters()"
+    >
+        清除條件
+    </button>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- Feedback overview -->
+<!-- ========================================================= -->
+
+<section class="dashboard-section">
+
+    <div class="dashboard-section-header">
+
+        <div>
+
+            <h2 class="dashboard-section-title">
+                組織回饋概況
+            </h2>
+
+            <div class="dashboard-section-description">
+                從情緒、議題與部門三個層面掌握回饋結構。
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="sortable-charts"
+        class="row g-3"
+    >
+
+
+        <!-- Sentiment -->
+
+        <div class="col-xl-5">
+
+            <div class="insight-card">
+
+                <div class="insight-card-header">
+
+                    <div>
+
+                        <h3 class="insight-card-title">
+                            整體情緒分布
+                        </h3>
+
+                        <div class="insight-card-description">
+                            點擊圖表區塊可作為其他分析的篩選條件。
+                        </div>
+
+                    </div>
+
+
+                    <div class="d-flex gap-2">
+
+                        <button
+                            id="lock-btn-sentiment"
+                            type="button"
+                            class="chart-action"
+                            onclick="toggleLock('sentiment')"
+                            title="鎖定圖表"
+                        >
+                            <i class="bi bi-unlock"></i>
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="
+                                chart-action
+                                drag-handle
+                            "
+                            title="拖曳調整順序"
+                        >
+                            <i class="bi bi-grip-vertical"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="chart-container">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Category -->
+
+        <div class="col-xl-7">
+
+            <div class="insight-card">
+
+                <div class="insight-card-header">
+
+                    <div>
+
+                        <h3 class="insight-card-title">
+                            回饋議題分布
+                        </h3>
+
+                        <div class="insight-card-description">
+                            顯示目前回饋集中在哪些工作體驗議題。
+                        </div>
+
+                    </div>
+
+
+                    <div class="d-flex gap-2">
+
+                        <button
+                            id="lock-btn-category"
+                            type="button"
+                            class="chart-action"
+                            onclick="toggleLock('category')"
+                            title="鎖定圖表"
+                        >
+                            <i class="bi bi-unlock"></i>
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="
+                                chart-action
+                                drag-handle
+                            "
+                            title="拖曳調整順序"
+                        >
+                            <i class="bi bi-grip-vertical"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Department -->
+
+        <div class="col-12">
+
+            <div class="insight-card">
+
+                <div class="insight-card-header">
+
+                    <div>
+
+                        <h3 class="insight-card-title">
+                            各部門情緒結構
+                        </h3>
+
+                        <div class="insight-card-description">
+                            比較不同部門正面、中立與負面回饋的組成。
+                        </div>
+
+                    </div>
+
+
+                    <div class="d-flex gap-2">
+
+                        <button
+                            id="lock-btn-dept"
+                            type="button"
+                            class="chart-action"
+                            onclick="toggleLock('dept')"
+                            title="鎖定圖表"
+                        >
+                            <i class="bi bi-unlock"></i>
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="
+                                chart-action
+                                drag-handle
+                            "
+                            title="拖曳調整順序"
+                        >
+                            <i class="bi bi-grip-vertical"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        chart-container
+                        chart-large
+                    "
+                >
+                    <canvas id="deptChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ========================================================= -->
+<!-- Heatmap -->
+<!-- ========================================================= -->
+
+<section class="dashboard-section">
+
+    <div class="dashboard-section-header">
+
+        <div>
+
+            <h2 class="dashboard-section-title">
+                跨部門議題熱度
+            </h2>
+
+            <div class="dashboard-section-description">
+                比較各部門在不同議題上的回饋集中程度；未指定情緒時預設聚焦負面回饋。
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="insight-card">
+
+        <div class="insight-card-header">
+
+            <div>
+
+                <h3
+                    id="heatmap-title"
+                    class="insight-card-title"
+                >
+                    跨部門議題熱度
+                </h3>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table
+                id="heatmap-table"
+                class="
+                    table
+                    align-middle
+                    mb-0
+                "
+            >
+
+                <thead id="heatmap-thead"></thead>
+
+                <tbody id="heatmap-tbody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ========================================================= -->
+<!-- Keywords + trend -->
+<!-- ========================================================= -->
+
+<section class="dashboard-section">
+
+    <div class="dashboard-section-header">
+
+        <div>
+
+            <h2 class="dashboard-section-title">
+                回饋趨勢與關鍵內容
+            </h2>
+
+            <div class="dashboard-section-description">
+                觀察近期常見詞彙與情緒變化趨勢。
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="row g-3">
+
+
+        <!-- Keywords -->
+
+        <div class="col-xl-5">
+
+            <div class="insight-card">
+
+                <div class="insight-card-header">
+
+                    <div>
+
+                        <h3
+                            id="wordcloud-title"
+                            class="insight-card-title"
+                        >
+                            熱門關鍵字
+                        </h3>
+
+                        <div class="insight-card-description">
+                            字體大小代表在目前分析條件下的出現頻率。
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div id="wordcloud-container">
+
+                    <span class="text-muted">
+                        資料載入中...
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Trend -->
+
+        <div class="col-xl-7">
+
+            <div class="insight-card">
+
+                <div
+                    class="
+                        insight-card-header
+                        flex-wrap
+                    "
+                >
+
+                    <div>
+
+                        <h3 class="insight-card-title">
+                            每日情緒趨勢
+                        </h3>
+
+                        <div class="insight-card-description">
+                            觀察不同日期的正面、中立與負面回饋變化。
+                        </div>
+
+                    </div>
+
+
+                    <div class="trend-toolbar">
+
+                        <!-- 日期 -->
+                        <div class="trend-toolbar-row">
+
+                            <span class="trend-toolbar-label">
+                                顯示區間
+                            </span>
+
+
+                            <div class="trend-filter">
+
+                                <input
+                                    type="date"
+                                    id="trend-start-date"
+                                    class="form-control form-control-sm"
+                                    onchange="handleTrendFilterChange()"
+                                    aria-label="趨勢開始日期"
+                                >
+
+
+                                <span class="text-muted small">
+                                    至
+                                </span>
+
+
+                                <input
+                                    type="date"
+                                    id="trend-end-date"
+                                    class="form-control form-control-sm"
+                                    onchange="handleTrendFilterChange()"
+                                    aria-label="趨勢結束日期"
+                                >
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="trend-preset-btn"
+                                onclick="setTrendPreset(7)"
+                            >
+                                近 7 天
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="trend-preset-btn"
+                                onclick="setTrendPreset(14)"
+                            >
+                                近 14 天
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="trend-preset-btn"
+                                onclick="clearTrendFilters()"
+                            >
+                                全部
+                            </button>
+
+                        </div>
+
+
+                        <!-- 情緒 + 圖表模式 -->
+                        <div class="trend-toolbar-row">
+
+                            <span class="trend-toolbar-label">
+                                顯示情緒
+                            </span>
+
+
+                            <div
+                                class="trend-chip-group"
+                                aria-label="趨勢情緒複選"
+                            >
+
+                                <button
+                                    id="trend-sentiment-positive"
+                                    type="button"
+                                    class="trend-chip is-selected"
+                                    onclick="toggleTrendSentiment('Positive')"
+                                    aria-pressed="true"
+                                >
+                                    正面
+                                </button>
+
+
+                                <button
+                                    id="trend-sentiment-neutral"
+                                    type="button"
+                                    class="trend-chip is-selected"
+                                    onclick="toggleTrendSentiment('Neutral')"
+                                    aria-pressed="true"
+                                >
+                                    中立
+                                </button>
+
+
+                                <button
+                                    id="trend-sentiment-negative"
+                                    type="button"
+                                    class="trend-chip is-selected"
+                                    onclick="toggleTrendSentiment('Negative')"
+                                    aria-pressed="true"
+                                >
+                                    負面
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="trend-preset-btn"
+                                    onclick="selectAllTrendSentiments()"
+                                >
+                                    全選
+                                </button>
+
+                            </div>
+
+
+                            <span
+                                class="trend-toolbar-divider"
+                                aria-hidden="true"
+                            ></span>
+
+
+                            <span class="trend-toolbar-label">
+                                圖表模式
+                            </span>
+
+
+                            <div
+                                class="trend-mode-group"
+                                aria-label="趨勢圖表模式"
+                            >
+
+                                <button
+                                    id="trend-mode-line"
+                                    type="button"
+                                    class="trend-mode-btn is-active"
+                                    onclick="setTrendChartMode('line')"
+                                    aria-pressed="true"
+                                >
+                                    趨勢線
+                                </button>
+
+
+                                <button
+                                    id="trend-mode-bar"
+                                    type="button"
+                                    class="trend-mode-btn"
+                                    onclick="setTrendChartMode('bar')"
+                                    aria-pressed="false"
+                                >
+                                    堆疊柱
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+</div>
+<div id="analysis-panel-affect" data-analysis-panel="affect" role="tabpanel" aria-labelledby="analysis-tab-affect" tabindex="0" hidden>
+<!-- ========================================================= -->
+<!-- Employee affect -->
+<!-- ========================================================= -->
+
+<section class="dashboard-section">
+
+    <div class="dashboard-section-header">
+
+        <div>
+
+            <h2 class="dashboard-section-title">
+                員工情緒狀態分析
+            </h2>
+
+            <div class="dashboard-section-description">
+                進一步觀察情緒效價、活化程度與工作情緒狀態。
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="dashboard-filter-bar scope-local-filter"
+    >
+
+        <div class="dashboard-filter-content">
+
+            <span class="dashboard-filter-label">
+                情緒分析條件：
+            </span>
+
+            <span id="affect-filter-badges"></span>
+
+        </div>
+
+
+        <button
+            id="clear-affect-filters"
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            onclick="clearAffectFilters()"
+        >
+            清除條件
+        </button>
+
+    </div>
+
+
+    <div class="affect-scope-card">
+
+        <div class="affect-scope-header">
+
+            <div>
+
+                <div class="affect-scope-title">
+                    Russell 篩選
+                </div>
+
+                <div class="affect-scope-description">
+                    只影響「員工情緒狀態分析」。可用四象限快速聚焦，也可自行設定 Valence 與 Arousal 範圍。
+                </div>
+
+            </div>
+
+
+            <div class="affect-filter-result">
+
+                <span class="affect-filter-result-label">
+                    目前情緒分析
+                </span>
+
+                <span
+                    id="affect-filter-result-count"
+                    class="affect-filter-result-value"
+                >
+                    —
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="affect-quadrant-group">
+
+            <span class="affect-quadrant-label">
+                四象限快捷
+            </span>
+
+
+            <button
+                id="affect-quadrant-all"
+                type="button"
+                class="affect-quadrant-btn is-active"
+                onclick="setAffectQuadrant('all')"
+                aria-pressed="true"
+            >
+                全部
+            </button>
+
+
+            <button
+                id="affect-quadrant-positive-high"
+                type="button"
+                class="affect-quadrant-btn"
+                onclick="setAffectQuadrant('positive_high')"
+                title="Valence 1～5；Arousal 4～5"
+                aria-pressed="false"
+            >
+                正向高活化
+            </button>
+
+
+            <button
+                id="affect-quadrant-positive-low"
+                type="button"
+                class="affect-quadrant-btn"
+                onclick="setAffectQuadrant('positive_low')"
+                title="Valence 1～5；Arousal 1～2"
+                aria-pressed="false"
+            >
+                正向低活化
+            </button>
+
+
+            <button
+                id="affect-quadrant-negative-high"
+                type="button"
+                class="affect-quadrant-btn"
+                onclick="setAffectQuadrant('negative_high')"
+                title="Valence -5～-1；Arousal 4～5"
+                aria-pressed="false"
+            >
+                負向高活化
+            </button>
+
+
+            <button
+                id="affect-quadrant-negative-low"
+                type="button"
+                class="affect-quadrant-btn"
+                onclick="setAffectQuadrant('negative_low')"
+                title="Valence -5～-1；Arousal 1～2"
+                aria-pressed="false"
+            >
+                負向低活化
+            </button>
+
+        </div>
+
+
+        <div class="affect-range-grid">
+
+            <!-- Valence -->
+
+            <div class="affect-range-field">
+
+                <label class="affect-range-label">
+                    Valence 範圍
+                </label>
+
+
+                <div class="affect-range-pair">
+
+                    <select
+                        id="affect-valence-min"
+                        class="form-select form-select-sm"
+                        onchange="handleAffectRangeChange()"
+                        aria-label="Valence 最小值"
+                    >
+                        <option value="-5">-5</option>
+                        <option value="-4">-4</option>
+                        <option value="-3">-3</option>
+                        <option value="-2">-2</option>
+                        <option value="-1">-1</option>
+                        <option value="0">0</option>
+                        <option value="1">+1</option>
+                        <option value="2">+2</option>
+                        <option value="3">+3</option>
+                        <option value="4">+4</option>
+                        <option value="5">+5</option>
+                    </select>
+
+
+                    <span class="affect-range-separator">
+                        至
+                    </span>
+
+
+                    <select
+                        id="affect-valence-max"
+                        class="form-select form-select-sm"
+                        onchange="handleAffectRangeChange()"
+                        aria-label="Valence 最大值"
+                    >
+                        <option value="-5">-5</option>
+                        <option value="-4">-4</option>
+                        <option value="-3">-3</option>
+                        <option value="-2">-2</option>
+                        <option value="-1">-1</option>
+                        <option value="0">0</option>
+                        <option value="1">+1</option>
+                        <option value="2">+2</option>
+                        <option value="3">+3</option>
+                        <option value="4">+4</option>
+                        <option value="5" selected>+5</option>
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- Arousal -->
+
+            <div class="affect-range-field">
+
+                <label class="affect-range-label">
+                    Arousal 範圍
+                </label>
+
+
+                <div class="affect-range-pair">
+
+                    <select
+                        id="affect-arousal-min"
+                        class="form-select form-select-sm"
+                        onchange="handleAffectRangeChange()"
+                        aria-label="Arousal 最小值"
+                    >
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+
+
+                    <span class="affect-range-separator">
+                        至
+                    </span>
+
+
+                    <select
+                        id="affect-arousal-max"
+                        class="form-select form-select-sm"
+                        onchange="handleAffectRangeChange()"
+                        aria-label="Arousal 最大值"
+                    >
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5" selected>5</option>
+                    </select>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="affect-range-note">
+
+            四象限快捷以
+            Valence = 0、
+            Arousal = 3
+            為中線；
+
+            中線值不強制歸入任一象限。
+            若需要包含中線值，可直接調整上方範圍。
+
+        </div>
+
+    </div>
+
+
+    <div class="analysis-metric-grid">
+
+
+        <div class="analysis-metric">
+
+            <div class="analysis-metric-label">
+                平均 Valence
+            </div>
+
+            <div
+                id="theory-kpi-valence"
+                class="analysis-metric-value"
+            >
+                —
+            </div>
+
+            <div class="analysis-metric-note">
+                範圍 -5 ～ +5
+            </div>
+
+        </div>
+
+
+        <div class="analysis-metric">
+
+            <div class="analysis-metric-label">
+                平均 Arousal
+            </div>
+
+            <div
+                id="theory-kpi-arousal"
+                class="analysis-metric-value"
+            >
+                —
+            </div>
+
+            <div class="analysis-metric-note">
+                範圍 1 ～ 5
+            </div>
+
+        </div>
+
+
+        <div class="analysis-metric">
+
+            <div class="analysis-metric-label">
+                主要工作情緒狀態
+            </div>
+
+            <div
+                id="theory-kpi-warr"
+                class="analysis-metric-value"
+            >
+                —
+            </div>
+
+            <div class="analysis-metric-note">
+                依目前分析條件統計
+            </div>
+
+        </div>
+
+
+        <div class="analysis-metric">
+
+            <div class="analysis-metric-label">
+                主要工作狀態
+            </div>
+
+            <div
+                id="theory-kpi-jdr"
+                class="analysis-metric-value"
+            >
+                —
+            </div>
+
+            <div class="analysis-metric-note">
+                依工作要求與資源訊號判讀
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="row g-3">
+
+
+        <!-- Russell -->
+
+        <div class="col-xl-7">
+
+            <div class="insight-card">
+
+                <div class="insight-card-header">
+
+                    <div>
+
+                        <h3 class="insight-card-title">
+                            Valence × Arousal
+                        </h3>
+
+                        <div class="insight-card-description">
+                            相同 Valence × Arousal 會合併為一個氣泡；氣泡越大、中央數字越高，代表該情緒座標的回饋越集中。
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        chart-container
+                        chart-xl
+                    "
+                >
+                    <canvas id="russellScatterChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Work affect -->
+
+        <div class="col-xl-5">
+
+            <div class="insight-card">
+
+                <div class="insight-card-header">
+
+                    <div>
+
+                        <h3 class="insight-card-title">
+                            工作情緒狀態分布
+                        </h3>
+
+                        <div class="insight-card-description">
+                            顯示目前回饋中不同工作情緒狀態的比例。
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        chart-container
+                        chart-xl
+                    "
+                >
+                    <canvas id="warrAffectChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+</div>
+<div id="analysis-panel-jdr" data-analysis-panel="jdr" role="tabpanel" aria-labelledby="analysis-tab-jdr" tabindex="0" hidden>
+<!-- ========================================================= -->
+<!-- JD-R -->
+<!-- ========================================================= -->
+
+<section class="dashboard-section">
+
+    <div class="dashboard-section-header">
+
+        <div>
+
+            <h2 class="dashboard-section-title">
+                JD-R 工作要求與資源分析
+            </h2>
+
+            <div class="dashboard-section-description">
+                觀察 Job Demands、Job Resources，以及回饋中呈現的壓力與正向動機訊號；部門、議題與日期沿用全域分析範圍，JD-R Process 與證據條件只影響本區。
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="dashboard-filter-bar scope-local-filter"
+    >
+
+        <div class="dashboard-filter-content">
+
+            <span class="dashboard-filter-label">
+                JD-R 分析條件：
+            </span>
+
+            <span id="jdr-local-filter-badges"></span>
+
+        </div>
+
+
+        <button
+            id="clear-jdr-local-filters"
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            onclick="clearJdrLocalFilters()"
+        >
+            清除條件
+        </button>
+
+    </div>
+
+
+    <div class="row g-3">
+
+
+        <div class="col-lg-5">
+
+            <div class="insight-card">
+
+                <div class="insight-card-header">
+
+                    <div>
+
+                        <h3 class="insight-card-title">
+                            工作狀態分布
+                        </h3>
+
+                        <div class="insight-card-description">
+                            彙整目前篩選範圍內的壓力耗損、正向激勵、混合狀態與證據不足。
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        chart-container
+                        chart-large
+                    "
+                >
+                    <canvas id="jdrProcessChart"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-lg-7">
+
+            <div class="insight-card">
+
+                <div class="insight-card-header">
+
+                    <div>
+
+                        <h3 class="insight-card-title">
+                            Demand–Resource Balance Map
+                        </h3>
+
+                        <div class="insight-card-description">
+                            比較各部門工作要求與工作資源訊號的相對位置；十字線為目前分析範圍的整體基準，點擊 Bubble 可查看部門診斷。
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        chart-container
+                        chart-large
+                    "
+                >
+                    <canvas id="jdrEvidenceChart"></canvas>
+                </div>
+
+
+                <div class="jdr-balance-footnote">
+                    X 軸為含有 Job Resources 訊號的回饋比例，Y 軸為含有 Job Demands 訊號的回饋比例；Bubble 大小代表該部門目前回饋筆數。圖中的高低是相對目前分析範圍的組織基準，用於優先調查，不代表固定風險門檻。
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="jdr-diagnostic-panel"
+        class="jdr-diagnostic-panel"
+    >
+
+        <div class="jdr-diagnostic-header">
+
+            <div>
+
+                <div
+                    id="jdr-diagnostic-title"
+                    class="jdr-diagnostic-title"
+                >
+                    整體組織 JD-R 診斷
+                </div>
+
+                <div class="jdr-diagnostic-description">
+                    先用 Balance Map 比較部門相對位置，再查看工作要求、工作資源與伴隨訊號，作為 HR 優先調查與介入設計的依據。
+                </div>
+
+            </div>
+
+
+            <button
+                id="jdr-diagnostic-reset"
+                type="button"
+                class="jdr-diagnostic-reset"
+                onclick="resetJdrDiagnosticDepartment()"
+                disabled
+            >
+                回到整體
+            </button>
+
+        </div>
+
+
+        <div class="jdr-diagnostic-metrics">
+
+            <div class="jdr-diagnostic-metric">
+
+                <div class="jdr-diagnostic-metric-label">
+                    Job Demands
+                </div>
+
+                <div
+                    id="jdr-diagnostic-demand"
+                    class="jdr-diagnostic-metric-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="jdr-diagnostic-metric">
+
+                <div class="jdr-diagnostic-metric-label">
+                    Job Resources
+                </div>
+
+                <div
+                    id="jdr-diagnostic-resource"
+                    class="jdr-diagnostic-metric-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="jdr-diagnostic-metric">
+
+                <div class="jdr-diagnostic-metric-label">
+                    壓力反應
+                </div>
+
+                <div
+                    id="jdr-diagnostic-strain"
+                    class="jdr-diagnostic-metric-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="jdr-diagnostic-metric">
+
+                <div class="jdr-diagnostic-metric-label">
+                    正向動機
+                </div>
+
+                <div
+                    id="jdr-diagnostic-motivation"
+                    class="jdr-diagnostic-metric-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="jdr-diagnostic-grid">
+
+            <div class="jdr-diagnostic-list-card">
+
+                <div class="jdr-diagnostic-list-title">
+                    主要 Job Demands
+                </div>
+
+                <div
+                    id="jdr-diagnostic-demands-list"
+                    class="jdr-diagnostic-list"
+                ></div>
+
+            </div>
+
+
+            <div class="jdr-diagnostic-list-card">
+
+                <div class="jdr-diagnostic-list-title">
+                    主要 Job Resources
+                </div>
+
+                <div
+                    id="jdr-diagnostic-resources-list"
+                    class="jdr-diagnostic-list"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="jdr-diagnostic-interpretation"
+            class="jdr-diagnostic-interpretation"
+        >
+            —
+        </div>
+
+    </div>
+
+
+    <div class="analysis-disclaimer mt-3">
+
+        情緒狀態與工作要求／資源分析是根據員工文字進行的輔助性分析，
+        用於組織趨勢觀察與 HR 決策參考，不代表心理衡鑑、醫療診斷或臨床判斷。
+
+    </div>
+
+</section>
+
+
+</div>
+
+<script>
+
+    // =========================================================
+    // Analysis dashboard
+    // =========================================================
+
+    let theoryRussellChartInstance =
+        null;
+
+    let theoryWarrChartInstance =
+        null;
+
+    let theoryJdrProcessChartInstance =
+        null;
+
+    let theoryJdrEvidenceChartInstance =
+        null;
+
+    let jdrDiagnosticDepartment =
+        null;
+
+
+    // 篩選狀態由 admin.js 統一管理。
+
+
+    // =========================================================
+    // Helpers
+    // =========================================================
+
+    function theoryNormalizeArray(
+        value
+    ) {
+
+        if (
+            Array.isArray(value)
+        ) {
+
+            return value;
+
+        }
+
+
+        if (
+            !value
+        ) {
+
+            return [];
+
+        }
+
+
+        if (
+            typeof value === 'string'
+        ) {
+
+            try {
+
+                const parsed =
+                    JSON.parse(value);
+
+
+                if (
+                    Array.isArray(parsed)
+                ) {
+
+                    return parsed;
+
+                }
+
+            } catch (error) {
+
+                // 相容舊資料
+
+            }
+
+
+            return value
+                .split(',')
+                .map(
+                    item =>
+                        item.trim()
+                )
+                .filter(
+                    Boolean
+                );
+
+        }
+
+
+        return [];
+
+    }
+
+
+    function theoryNumberOrNull(
+        value
+    ) {
+
+        if (
+            value === null
+
+            ||
+
+            value === undefined
+
+            ||
+
+            value === ''
+        ) {
+
+            return null;
+
+        }
+
+
+        const number =
+            Number(value);
+
+
+        return Number.isFinite(number)
+
+            ? number
+
+            : null;
+
+    }
+
+
+    function theoryHasAnalysis(
+        item
+    ) {
+
+        return Boolean(
+
+            item
+
+            &&
+
+            (
+
+                theoryNumberOrNull(
+                    item.valence_score
+                ) !== null
+
+                ||
+
+                theoryNumberOrNull(
+                    item.arousal_score
+                ) !== null
+
+                ||
+
+                item.affective_state
+
+                ||
+
+                item.jdr_process
+
+            )
+
+        );
+
+    }
+
+
+    function theoryAffectLabel(
+        value
+    ) {
+
+        const labels = {
+
+            enthusiasm:
+                '積極投入',
+
+            contentment:
+                '穩定滿意',
+
+            anxiety:
+                '緊張焦慮',
+
+            depression_related:
+                '低活力負向',
+
+            mixed:
+                '混合情緒',
+
+            unclear:
+                '狀態不明'
+
+        };
+
+
+        return labels[value]
+
+            ||
+
+            '狀態不明';
+
+    }
+
+
+    function theoryJdrLabel(
+        value
+    ) {
+
+        const labels = {
+
+            health_impairment:
+                '壓力耗損',
+
+            motivational:
+                '正向激勵',
+
+            mixed:
+                '混合狀態',
+
+            insufficient_evidence:
+                '證據不足'
+
+        };
+
+
+        return labels[value]
+
+            ||
+
+            '證據不足';
+
+    }
+
+
+    function theoryMostCommon(
+        counts,
+        labelFunction
+    ) {
+
+        const entries =
+
+            Object.entries(
+                counts
+            )
+
+            .sort(
+                (
+                    a,
+                    b
+                ) =>
+                    b[1] - a[1]
+            );
+
+
+        if (
+            !entries.length
+
+            ||
+
+            entries[0][1] <= 0
+        ) {
+
+            return '—';
+
+        }
+
+
+        return labelFunction(
+            entries[0][0]
+        );
+
+    }
+
+
+    // =========================================================
+    // Main
+    // =========================================================
+
+    function drawTheoryDashboardCharts(
+        affectData,
+        jdrData
+    ) {
+
+        const analyzedAffectData =
+
+            Array.isArray(
+                affectData
+            )
+
+                ? affectData.filter(
+                    theoryHasAnalysis
+                )
+
+                : [];
+
+
+        const analyzedJdrData =
+
+            Array.isArray(
+                jdrData
+            )
+
+                ? jdrData.filter(
+                    theoryHasAnalysis
+                )
+
+                : [];
+
+
+        drawTheoryKpis(
+            analyzedAffectData,
+            analyzedJdrData
+        );
+
+
+        drawRussellScatter(
+            analyzedAffectData
+        );
+
+
+        drawAffectDistribution(
+            analyzedAffectData
+        );
+
+
+        drawJdrProcessDistribution(
+            analyzedJdrData
+        );
+
+
+        drawJdrEvidenceOverview(
+            analyzedJdrData
+        );
+
+    }
+
+
+    // =========================================================
+    // KPI
+    // =========================================================
+
+    function drawTheoryKpis(
+        affectData,
+        jdrData
+    ) {
+
+        const valenceValues =
+
+            affectData
+
+                .map(
+                    item =>
+                        theoryNumberOrNull(
+                            item.valence_score
+                        )
+                )
+
+                .filter(
+                    value =>
+                        value !== null
+                );
+
+
+        const arousalValues =
+
+            affectData
+
+                .map(
+                    item =>
+                        theoryNumberOrNull(
+                            item.arousal_score
+                        )
+                )
+
+                .filter(
+                    value =>
+                        value !== null
+                );
+
+
+        const average =
+            values => {
+
+                if (
+                    !values.length
+                ) {
+
+                    return null;
+
+                }
+
+
+                return (
+
+                    values.reduce(
+                        (
+                            total,
+                            value
+                        ) =>
+                            total + value,
+                        0
+                    )
+
+                    /
+
+                    values.length
+
+                );
+
+            };
+
+
+        const avgValence =
+            average(
+                valenceValues
+            );
+
+
+        const avgArousal =
+            average(
+                arousalValues
+            );
+
+
+        const valenceEl =
+            document.getElementById(
+                'theory-kpi-valence'
+            );
+
+
+        const arousalEl =
+            document.getElementById(
+                'theory-kpi-arousal'
+            );
+
+
+        if (
+            valenceEl
+        ) {
+
+            valenceEl.textContent =
+
+                avgValence === null
+
+                    ? '—'
+
+                    : `${
+                        avgValence > 0
+                            ? '+'
+                            : ''
+                    }${avgValence.toFixed(2)}`;
+
+        }
+
+
+        if (
+            arousalEl
+        ) {
+
+            arousalEl.textContent =
+
+                avgArousal === null
+
+                    ? '—'
+
+                    : avgArousal.toFixed(2);
+
+        }
+
+
+        const affectCounts =
+            {};
+
+
+        const jdrCounts =
+            {};
+
+
+        affectData.forEach(
+            item => {
+
+                if (
+                    item.affective_state
+                ) {
+
+                    affectCounts[
+                        item.affective_state
+                    ] =
+
+                        (
+                            affectCounts[
+                                item.affective_state
+                            ]
+                            ||
+                            0
+                        )
+
+                        +
+                        1;
+
+                }
+
+            }
+        );
+
+
+        jdrData.forEach(
+            item => {
+
+                if (
+                    item.jdr_process
+                ) {
+
+                    jdrCounts[
+                        item.jdr_process
+                    ] =
+
+                        (
+                            jdrCounts[
+                                item.jdr_process
+                            ]
+                            ||
+                            0
+                        )
+
+                        +
+                        1;
+
+                }
+
+            }
+        );
+
+
+        const affectEl =
+            document.getElementById(
+                'theory-kpi-warr'
+            );
+
+
+        const jdrEl =
+            document.getElementById(
+                'theory-kpi-jdr'
+            );
+
+
+        if (
+            affectEl
+        ) {
+
+            affectEl.textContent =
+
+                theoryMostCommon(
+                    affectCounts,
+                    theoryAffectLabel
+                );
+
+        }
+
+
+        if (
+            jdrEl
+        ) {
+
+            jdrEl.textContent =
+
+                theoryMostCommon(
+                    jdrCounts,
+                    theoryJdrLabel
+                );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // Russell
+    // =========================================================
+
+    function drawRussellScatter(
+        data
+    ) {
+
+        const canvas =
+            document.getElementById(
+                'russellScatterChart'
+            );
+
+
+        if (
+            !canvas
+            ||
+            typeof Chart === 'undefined'
+        ) {
+
+            return;
+
+        }
+
+
+        /*
+         * 先留下具有有效
+         * Valence / Arousal 的資料。
+         */
+        const validItems =
+            data
+                .map(
+                    item => {
+
+                        const x =
+                            theoryNumberOrNull(
+                                item.valence_score
+                            );
+
+
+                        const y =
+                            theoryNumberOrNull(
+                                item.arousal_score
+                            );
+
+
+                        if (
+                            x === null
+                            ||
+                            y === null
+                        ) {
+
+                            return null;
+
+                        }
+
+
+                        return {
+                            item:
+                                item,
+                            x:
+                                x,
+                            y:
+                                y
+                        };
+
+                    }
+                )
+                .filter(
+                    Boolean
+                );
+
+
+        /*
+         * 相同 Valence × Arousal
+         * 合併成一個 group。
+         */
+        const groups =
+            new Map();
+
+
+        validItems.forEach(
+            entry => {
+
+                const key =
+                    `${entry.x}|${entry.y}`;
+
+
+                if (
+                    !groups.has(
+                        key
+                    )
+                ) {
+
+                    groups.set(
+                        key,
+                        {
+
+                            x:
+                                entry.x,
+
+                            y:
+                                entry.y,
+
+                            count:
+                                0,
+
+                            affectCounts:
+                                {},
+
+                            categoryCounts:
+                                {}
+
+                        }
+                    );
+
+                }
+
+
+                const group =
+                    groups.get(
+                        key
+                    );
+
+
+                group.count++;
+
+
+                const affect =
+                    entry.item.affective_state
+                    ||
+                    'unclear';
+
+
+                group.affectCounts[
+                    affect
+                ] =
+                    (
+                        group.affectCounts[
+                            affect
+                        ]
+                        ||
+                        0
+                    )
+                    +
+                    1;
+
+
+                const category =
+                    entry.item.category
+                    ||
+                    '未分類';
+
+
+                group.categoryCounts[
+                    category
+                ] =
+                    (
+                        group.categoryCounts[
+                            category
+                        ]
+                        ||
+                        0
+                    )
+                    +
+                    1;
+
+            }
+        );
+
+
+        const mostCommonKey =
+            counts => {
+
+                const entries =
+                    Object.entries(
+                        counts
+                        ||
+                        {}
+                    )
+                    .sort(
+                        (
+                            a,
+                            b
+                        ) =>
+                            b[1]
+                            -
+                            a[1]
+                    );
+
+
+                return (
+                    entries.length
+
+                        ? entries[0][0]
+
+                        : null
+                );
+
+            };
+
+
+        const total =
+            validItems.length;
+
+
+        const points =
+            Array.from(
+                groups.values()
+            )
+            .map(
+                group => ({
+
+                    x:
+                        group.x,
+
+                    y:
+                        group.y,
+
+                    count:
+                        group.count,
+
+                    percentage:
+
+                        total
+
+                            ? group.count
+                              /
+                              total
+                              *
+                              100
+
+                            : 0,
+
+                    dominantAffect:
+                        mostCommonKey(
+                            group.affectCounts
+                        ),
+
+                    dominantCategory:
+                        mostCommonKey(
+                            group.categoryCounts
+                        )
+                        ||
+                        '未分類'
+
+                })
+            );
+
+
+        /*
+         * 使用平方根控制 Bubble 半徑，
+         * 避免高筆數 Bubble 過度巨大。
+         */
+        const radiusForCount =
+            count =>
+
+                5
+                +
+                Math.sqrt(
+                    Math.max(
+                        Number(count)
+                        ||
+                        1,
+                        1
+                    )
+                )
+                *
+                4.2;
+
+
+        /*
+         * 已建立過 Chart：
+         * 不 destroy，直接 update。
+         */
+        if (
+            theoryRussellChartInstance
+        ) {
+
+            theoryRussellChartInstance
+                .data
+                .datasets[0]
+                .data =
+                    points;
+
+
+            theoryRussellChartInstance.update();
+
+
+            return;
+
+        }
+
+
+        /*
+         * 四象限名稱。
+         *
+         * Valence = 0
+         * Arousal = 3
+         *
+         * 為中心。
+         */
+        const quadrantLabelsPlugin = {
+
+            id:
+                'russellQuadrantLabels',
+
+
+            beforeDatasetsDraw(
+                chart
+            ) {
+
+                const {
+                    ctx,
+                    chartArea,
+                    scales
+                } =
+                    chart;
+
+
+                if (
+                    !chartArea
+                    ||
+                    !scales?.x
+                    ||
+                    !scales?.y
+                ) {
+
+                    return;
+
+                }
+
+
+                const centerX =
+                    scales.x.getPixelForValue(
+                        0
+                    );
+
+
+                const centerY =
+                    scales.y.getPixelForValue(
+                        3
+                    );
+
+
+                const leftX =
+                    (
+                        chartArea.left
+                        +
+                        centerX
+                    )
+                    /
+                    2;
+
+
+                const rightX =
+                    (
+                        centerX
+                        +
+                        chartArea.right
+                    )
+                    /
+                    2;
+
+
+                const topY =
+                    chartArea.top
+                    +
+                    18;
+
+
+                const bottomY =
+                    chartArea.bottom
+                    -
+                    12;
+
+
+                ctx.save();
+
+
+                ctx.fillStyle =
+                    'rgba(71, 84, 103, 0.48)';
+
+
+                ctx.font =
+                    '600 11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+
+                ctx.textAlign =
+                    'center';
+
+
+                ctx.textBaseline =
+                    'middle';
+
+
+                ctx.fillText(
+                    '緊張焦慮',
+                    leftX,
+                    topY
+                );
+
+
+                ctx.fillText(
+                    '積極投入',
+                    rightX,
+                    topY
+                );
+
+
+                ctx.fillText(
+                    '低活力負向',
+                    leftX,
+                    bottomY
+                );
+
+
+                ctx.fillText(
+                    '穩定滿意',
+                    rightX,
+                    bottomY
+                );
+
+
+                ctx.restore();
+
+            }
+
+        };
+
+
+        theoryRussellChartInstance =
+            new Chart(
+                canvas,
+                {
+
+                    type:
+                        'scatter',
+
+
+                    plugins: [
+                        quadrantLabelsPlugin
+                    ],
+
+
+                    data: {
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    '回饋密度',
+
+                                data:
+                                    points,
+
+
+                                /*
+                                 * Bubble size = Count
+                                 */
+                                pointRadius:
+                                    context =>
+                                        radiusForCount(
+                                            context.raw
+                                                ?.count
+                                        ),
+
+
+                                pointHoverRadius:
+                                    context =>
+                                        radiusForCount(
+                                            context.raw
+                                                ?.count
+                                        )
+                                        +
+                                        3,
+
+
+                                pointBackgroundColor:
+                                    'rgba(79, 131, 109, 0.88)',
+
+
+                                pointBorderColor:
+                                    '#ffffff',
+
+
+                                pointBorderWidth:
+                                    1.5
+
+                            }
+
+                        ]
+
+                    },
+
+
+                    options: {
+
+                        responsive:
+                            true,
+
+                        maintainAspectRatio:
+                            false,
+
+
+                        animation: {
+
+                            duration:
+                                450,
+
+                            easing:
+                                'easeOutCubic'
+
+                        },
+
+
+                        plugins: {
+
+                            legend: {
+
+                                display:
+                                    false
+
+                            },
+
+
+                            /*
+                             * Bubble 中央直接顯示 Count。
+                             */
+                            datalabels: {
+
+                                display:
+                                    true,
+
+                                color:
+                                    '#ffffff',
+
+                                font: {
+
+                                    size:
+                                        10,
+
+                                    weight:
+                                        '700'
+
+                                },
+
+                                formatter:
+                                    value =>
+                                        value?.count
+                                        ??
+                                        ''
+
+                            },
+
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    title:
+                                        context => {
+
+                                            if (
+                                                !context.length
+                                            ) {
+
+                                                return '';
+
+                                            }
+
+
+                                            const point =
+                                                context[0].raw;
+
+
+                                            return (
+                                                `Valence ${point.x} · Arousal ${point.y}`
+                                            );
+
+                                        },
+
+
+                                    label:
+                                        context => {
+
+                                            const point =
+                                                context.raw;
+
+
+                                            return (
+                                                `回饋數：${point.count} / ${total} 筆 `
+                                                +
+                                                `(${point.percentage.toFixed(1)}%)`
+                                            );
+
+                                        },
+
+
+                                    afterLabel:
+                                        context => {
+
+                                            const point =
+                                                context.raw;
+
+
+                                            return [
+
+                                                `主要工作情緒：${theoryAffectLabel(
+                                                    point.dominantAffect
+                                                )}`,
+
+                                                `主要議題：${point.dominantCategory}`
+
+                                            ];
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+
+                        scales: {
+
+                            x: {
+
+                                min:
+                                    -5,
+
+                                max:
+                                    5,
+
+                                ticks: {
+
+                                    stepSize:
+                                        1
+
+                                },
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        'Valence'
+
+                                },
+
+                                grid: {
+
+                                    color:
+                                        context =>
+
+                                            context.tick.value
+                                            ===
+                                            0
+
+                                                ? 'rgba(62, 107, 90, 0.32)'
+
+                                                : 'rgba(16, 24, 40, 0.06)',
+
+
+                                    lineWidth:
+                                        context =>
+
+                                            context.tick.value
+                                            ===
+                                            0
+
+                                                ? 2
+
+                                                : 1
+
+                                }
+
+                            },
+
+
+                            y: {
+
+                                min:
+                                    1,
+
+                                max:
+                                    5,
+
+                                ticks: {
+
+                                    stepSize:
+                                        1
+
+                                },
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        'Arousal'
+
+                                },
+
+
+                                /*
+                                 * Arousal = 3
+                                 * 為中等活化中心線。
+                                 */
+                                grid: {
+
+                                    color:
+                                        context =>
+
+                                            context.tick.value
+                                            ===
+                                            3
+
+                                                ? 'rgba(62, 107, 90, 0.32)'
+
+                                                : 'rgba(16, 24, 40, 0.06)',
+
+
+                                    lineWidth:
+                                        context =>
+
+                                            context.tick.value
+                                            ===
+                                            3
+
+                                                ? 2
+
+                                                : 1
+
+                                }
+
+                            }
+
+                        },
+
+
+                        onHover:
+                            (
+                                event,
+                                elements
+                            ) => {
+
+                                const target =
+                                    event
+                                        ?.native
+                                        ?.target;
+
+
+                                if (
+                                    target
+                                ) {
+
+                                    target.style.cursor =
+
+                                        elements.length
+
+                                            ? 'pointer'
+
+                                            : 'default';
+
+                                }
+
+                            },
+
+
+                        /*
+                         * 保留原本 Russell click filter。
+                         */
+                        onClick:
+                            (
+                                event,
+                                elements,
+                                chart
+                            ) => {
+
+                                if (
+                                    !elements.length
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                const element =
+                                    elements[0];
+
+
+                                const point =
+                                    chart
+                                        .data
+                                        .datasets[
+                                            element.datasetIndex
+                                        ]
+                                        .data[
+                                            element.index
+                                        ];
+
+
+                                if (
+                                    !point
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                const sameSelection =
+
+                                    affectFilters.valence
+                                    !==
+                                    null
+
+                                    &&
+
+                                    affectFilters.arousal
+                                    !==
+                                    null
+
+                                    &&
+
+                                    Number(
+                                        affectFilters.valence
+                                    )
+                                    ===
+                                    Number(
+                                        point.x
+                                    )
+
+                                    &&
+
+                                    Number(
+                                        affectFilters.arousal
+                                    )
+                                    ===
+                                    Number(
+                                        point.y
+                                    );
+
+
+                                /*
+                                 * 點 Bubble 時改成精確座標模式。
+                                 */
+                                affectFilters.quadrant =
+                                    null;
+
+
+                                affectFilters.valenceMin =
+                                    null;
+
+
+                                affectFilters.valenceMax =
+                                    null;
+
+
+                                affectFilters.arousalMin =
+                                    null;
+
+
+                                affectFilters.arousalMax =
+                                    null;
+
+
+                                if (
+                                    sameSelection
+                                ) {
+
+                                    affectFilters.valence =
+                                        null;
+
+
+                                    affectFilters.arousal =
+                                        null;
+
+                                } else {
+
+                                    affectFilters.valence =
+                                        Number(
+                                            point.x
+                                        );
+
+
+                                    affectFilters.arousal =
+                                        Number(
+                                            point.y
+                                        );
+
+                                }
+
+
+                                drawDashboardCharts();
+
+                            }
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    // =========================================================
+    // Work affect
+    // =========================================================
+
+    function drawAffectDistribution(
+        data
+    ) {
+
+        const canvas =
+            document.getElementById(
+                'warrAffectChart'
+            );
+
+
+        if (
+            !canvas
+            ||
+            typeof Chart === 'undefined'
+        ) {
+
+            return;
+
+        }
+
+
+        const states = [
+
+            'enthusiasm',
+
+            'contentment',
+
+            'anxiety',
+
+            'depression_related',
+
+            'mixed',
+
+            'unclear'
+
+        ];
+
+
+        const colors = [
+
+            '#4f836d',
+
+            '#87aa9b',
+
+            '#b9853f',
+
+            '#a87575',
+
+            '#7e7593',
+
+            '#a9b0bb'
+
+        ];
+
+
+        const counts =
+            Object.fromEntries(
+                states.map(
+                    state => [
+                        state,
+                        0
+                    ]
+                )
+            );
+
+
+        data.forEach(
+            item => {
+
+                if (
+                    states.includes(
+                        item.affective_state
+                    )
+                ) {
+
+                    counts[
+                        item.affective_state
+                    ]++;
+
+                }
+
+            }
+        );
+
+
+        const labels =
+            states.map(
+                theoryAffectLabel
+            );
+
+
+        const values =
+            states.map(
+                state =>
+                    counts[
+                        state
+                    ]
+            );
+
+
+        /*
+         * 已存在就 update。
+         */
+        if (
+            theoryWarrChartInstance
+        ) {
+
+            theoryWarrChartInstance.data.labels =
+                labels;
+
+
+            theoryWarrChartInstance
+                .data
+                .datasets[0]
+                .data =
+                    values;
+
+
+            theoryWarrChartInstance
+                .data
+                .datasets[0]
+                .backgroundColor =
+                    colors;
+
+
+            theoryWarrChartInstance.update();
+
+
+            return;
+
+        }
+
+
+        const selectState =
+            state => {
+
+                if (
+                    !state
+                ) {
+
+                    return;
+
+                }
+
+
+                affectFilters.affectiveState =
+
+                    affectFilters.affectiveState
+                    ===
+                    state
+
+                        ? null
+
+                        : state;
+
+
+                drawDashboardCharts();
+
+            };
+
+
+        theoryWarrChartInstance =
+            new Chart(
+                canvas,
+                {
+
+                    type:
+                        'doughnut',
+
+
+                    data: {
+
+                        labels:
+                            labels,
+
+
+                        datasets: [
+
+                            {
+
+                                data:
+                                    values,
+
+                                backgroundColor:
+                                    colors,
+
+                                borderWidth:
+                                    0,
+
+                                hoverBorderWidth:
+                                    0,
+
+                                hoverOffset:
+                                    0
+
+                            }
+
+                        ]
+
+                    },
+
+
+                    options: {
+
+                        responsive:
+                            true,
+
+                        maintainAspectRatio:
+                            false,
+
+                        cutout:
+                            '62%',
+
+
+                        animation: {
+
+                            duration:
+                                550,
+
+                            easing:
+                                'easeOutCubic'
+
+                        },
+
+
+                        plugins: {
+
+                            legend: {
+
+                                position:
+                                    'bottom',
+
+                                labels: {
+
+                                    boxWidth:
+                                        10,
+
+                                    usePointStyle:
+                                        true,
+
+                                    pointStyle:
+                                        'circle'
+
+                                },
+
+                                onClick:
+                                    (
+                                        event,
+                                        legendItem
+                                    ) => {
+
+                                        selectState(
+                                            states[
+                                                legendItem.index
+                                            ]
+                                        );
+
+                                    }
+
+                            },
+
+
+                            datalabels: {
+
+                                display:
+                                    false
+
+                            }
+
+                        },
+
+
+                        onHover:
+                            (
+                                event,
+                                elements
+                            ) => {
+
+                                const target =
+                                    event
+                                        ?.native
+                                        ?.target;
+
+
+                                if (
+                                    target
+                                ) {
+
+                                    target.style.cursor =
+
+                                        elements.length
+
+                                            ? 'pointer'
+
+                                            : 'default';
+
+                                }
+
+                            },
+
+
+                        onClick:
+                            (
+                                event,
+                                elements
+                            ) => {
+
+                                if (
+                                    elements.length
+                                ) {
+
+                                    selectState(
+                                        states[
+                                            elements[0].index
+                                        ]
+                                    );
+
+                                }
+
+                            }
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    // =========================================================
+    // JD-R process    // =========================================================
+    // JD-R process
+    // =========================================================
+
+    function drawJdrProcessDistribution(
+        data
+    ) {
+
+        const canvas =
+            document.getElementById(
+                'jdrProcessChart'
+            );
+
+
+        if (
+            !canvas
+            ||
+            typeof Chart === 'undefined'
+        ) {
+
+            return;
+
+        }
+
+
+        const processes = [
+
+            'health_impairment',
+
+            'motivational',
+
+            'mixed',
+
+            'insufficient_evidence'
+
+        ];
+
+
+        const colors = [
+
+            '#a87575',
+
+            '#4f836d',
+
+            '#837791',
+
+            '#a9b0bb'
+
+        ];
+
+
+        const counts =
+            Object.fromEntries(
+                processes.map(
+                    process => [
+                        process,
+                        0
+                    ]
+                )
+            );
+
+
+        data.forEach(
+            item => {
+
+                const process =
+
+                    processes.includes(
+                        item.jdr_process
+                    )
+
+                        ? item.jdr_process
+
+                        : 'insufficient_evidence';
+
+
+                counts[
+                    process
+                ]++;
+
+            }
+        );
+
+
+        const labels =
+            processes.map(
+                theoryJdrLabel
+            );
+
+
+        const values =
+            processes.map(
+                process =>
+                    counts[
+                        process
+                    ]
+            );
+
+
+        const total =
+            data.length;
+
+
+        if (
+            theoryJdrProcessChartInstance
+        ) {
+
+            theoryJdrProcessChartInstance.data.labels =
+                labels;
+
+
+            theoryJdrProcessChartInstance
+                .data
+                .datasets[0]
+                .data =
+                    values;
+
+
+            theoryJdrProcessChartInstance
+                .data
+                .datasets[0]
+                .backgroundColor =
+                    colors;
+
+
+            theoryJdrProcessChartInstance.$currentTotal =
+                total;
+
+
+            theoryJdrProcessChartInstance.update();
+
+
+            return;
+
+        }
+
+
+        const selectProcess =
+            process => {
+
+                if (
+                    !process
+                ) {
+
+                    return;
+
+                }
+
+
+                jdrFilters.process =
+
+                    jdrFilters.process
+                    ===
+                    process
+
+                        ? null
+
+                        : process;
+
+
+                drawDashboardCharts();
+
+            };
+
+
+        theoryJdrProcessChartInstance =
+            new Chart(
+                canvas,
+                {
+
+                    type:
+                        'doughnut',
+
+
+                    data: {
+
+                        labels:
+                            labels,
+
+
+                        datasets: [
+
+                            {
+
+                                data:
+                                    values,
+
+                                backgroundColor:
+                                    colors,
+
+                                borderWidth:
+                                    0,
+
+                                hoverBorderWidth:
+                                    0,
+
+                                hoverOffset:
+                                    0
+
+                            }
+
+                        ]
+
+                    },
+
+
+                    options: {
+
+                        responsive:
+                            true,
+
+                        maintainAspectRatio:
+                            false,
+
+                        cutout:
+                            '62%',
+
+
+                        animation: {
+
+                            duration:
+                                550,
+
+                            easing:
+                                'easeOutCubic'
+
+                        },
+
+
+                        plugins: {
+
+                            legend: {
+
+                                position:
+                                    'bottom',
+
+                                labels: {
+
+                                    boxWidth:
+                                        10,
+
+                                    usePointStyle:
+                                        true,
+
+                                    pointStyle:
+                                        'circle'
+
+                                },
+
+                                onClick:
+                                    (
+                                        event,
+                                        legendItem
+                                    ) => {
+
+                                        selectProcess(
+                                            processes[
+                                                legendItem.index
+                                            ]
+                                        );
+
+                                    }
+
+                            },
+
+
+                            datalabels: {
+
+                                color:
+                                    '#ffffff',
+
+                                font: {
+
+                                    size:
+                                        10,
+
+                                    weight:
+                                        '700'
+
+                                },
+
+                                formatter:
+                                    (
+                                        value,
+                                        context
+                                    ) => {
+
+                                        const currentTotal =
+
+                                            context.chart.$currentTotal
+                                            ??
+                                            total;
+
+
+                                        if (
+                                            !value
+                                            ||
+                                            !currentTotal
+                                        ) {
+
+                                            return null;
+
+                                        }
+
+
+                                        return (
+                                            `${value}\n`
+                                            +
+                                            `${Math.round(
+                                                value
+                                                /
+                                                currentTotal
+                                                *
+                                                100
+                                            )}%`
+                                        );
+
+                                    }
+
+                            },
+
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    label:
+                                        context => {
+
+                                            const value =
+                                                Number(
+                                                    context.raw
+                                                    ||
+                                                    0
+                                                );
+
+
+                                            const currentTotal =
+
+                                                context.chart.$currentTotal
+                                                ??
+                                                total;
+
+
+                                            const percentage =
+
+                                                currentTotal
+
+                                                    ? (
+                                                        value
+                                                        /
+                                                        currentTotal
+                                                        *
+                                                        100
+                                                    ).toFixed(
+                                                        1
+                                                    )
+
+                                                    : '0.0';
+
+
+                                            return (
+                                                `${context.label}: `
+                                                +
+                                                `${value} / ${currentTotal} 筆 `
+                                                +
+                                                `(${percentage}%)`
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+
+                        onHover:
+                            (
+                                event,
+                                elements
+                            ) => {
+
+                                const target =
+                                    event
+                                        ?.native
+                                        ?.target;
+
+
+                                if (
+                                    target
+                                ) {
+
+                                    target.style.cursor =
+
+                                        elements.length
+
+                                            ? 'pointer'
+
+                                            : 'default';
+
+                                }
+
+                            },
+
+
+                        onClick:
+                            (
+                                event,
+                                elements
+                            ) => {
+
+                                if (
+                                    elements.length
+                                ) {
+
+                                    selectProcess(
+                                        processes[
+                                            elements[0].index
+                                        ]
+                                    );
+
+                                }
+
+                            }
+
+                    }
+
+                }
+            );
+
+
+        theoryJdrProcessChartInstance.$currentTotal =
+            total;
+
+    }
+
+
+    // =========================================================
+    // JD-R Demand–Resource diagnostic
+    // =========================================================
+
+    function jdrCoverageMetrics(
+        data
+    ) {
+
+        const total =
+            data.length;
+
+
+        const countWith =
+            field =>
+                data.filter(
+                    item =>
+                        theoryNormalizeArray(
+                            item[field]
+                        ).length
+                        >
+                        0
+                ).length;
+
+
+        const demands =
+            countWith(
+                'job_demands'
+            );
+
+
+        const resources =
+            countWith(
+                'job_resources'
+            );
+
+
+        const strain =
+            countWith(
+                'strain_indicators'
+            );
+
+
+        const motivation =
+            countWith(
+                'motivational_indicators'
+            );
+
+
+        const pct =
+            count =>
+
+                total
+
+                    ? count
+                      /
+                      total
+                      *
+                      100
+
+                    : 0;
+
+
+        return {
+
+            total,
+            demands,
+            resources,
+            strain,
+            motivation,
+
+            demandPct:
+                pct(
+                    demands
+                ),
+
+            resourcePct:
+                pct(
+                    resources
+                ),
+
+            strainPct:
+                pct(
+                    strain
+                ),
+
+            motivationPct:
+                pct(
+                    motivation
+                )
+
+        };
+
+    }
+
+
+    function jdrTopSignals(
+        data,
+        field,
+        limit = 5
+    ) {
+
+        const counts =
+            new Map();
+
+
+        data.forEach(
+            item => {
+
+                theoryNormalizeArray(
+                    item[field]
+                )
+                .forEach(
+                    raw => {
+
+                        const label =
+                            String(
+                                raw
+                                ??
+                                ''
+                            )
+                            .trim();
+
+
+                        if (
+                            !label
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        counts.set(
+                            label,
+                            (
+                                counts.get(
+                                    label
+                                )
+                                ||
+                                0
+                            )
+                            +
+                            1
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+        return Array.from(
+            counts.entries()
+        )
+        .sort(
+            (
+                a,
+                b
+            ) =>
+                b[1]
+                -
+                a[1]
+        )
+        .slice(
+            0,
+            limit
+        );
+
+    }
+
+
+    function jdrRenderSignalList(
+        elementId,
+        entries
+    ) {
+
+        const element =
+            document.getElementById(
+                elementId
+            );
+
+
+        if (
+            !element
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            !entries.length
+        ) {
+
+            element.innerHTML =
+                '<span class="text-muted small">目前沒有明確訊號</span>';
+
+            return;
+
+        }
+
+
+        element.innerHTML =
+            entries
+                .map(
+                    (
+                        [
+                            label,
+                            count
+                        ]
+                    ) => `
+
+                        <span class="jdr-diagnostic-pill">
+
+                            ${escapeHtml(
+                                label
+                            )}
+
+                            <strong>
+                                ${count}
+                            </strong>
+
+                        </span>
+
+                    `
+                )
+                .join('');
+
+    }
+
+
+    function renderJdrDiagnostic(
+        data
+    ) {
+
+        const allData =
+
+            Array.isArray(
+                data
+            )
+
+                ? data
+
+                : [];
+
+
+        const availableDepartments =
+            new Set(
+
+                allData.map(
+                    item =>
+                        item.department
+                        ||
+                        '未提供'
+                )
+
+            );
+
+
+        if (
+            jdrDiagnosticDepartment
+            &&
+            !availableDepartments.has(
+                jdrDiagnosticDepartment
+            )
+        ) {
+
+            jdrDiagnosticDepartment =
+                null;
+
+        }
+
+
+        const selectedData =
+
+            jdrDiagnosticDepartment
+
+                ? allData.filter(
+                    item =>
+
+                        (
+                            item.department
+                            ||
+                            '未提供'
+                        )
+
+                        ===
+
+                        jdrDiagnosticDepartment
+                )
+
+                : allData;
+
+
+        const metrics =
+            jdrCoverageMetrics(
+                selectedData
+            );
+
+
+        const benchmark =
+            jdrCoverageMetrics(
+                allData
+            );
+
+
+        const title =
+            document.getElementById(
+                'jdr-diagnostic-title'
+            );
+
+
+        const reset =
+            document.getElementById(
+                'jdr-diagnostic-reset'
+            );
+
+
+        if (
+            title
+        ) {
+
+            title.textContent =
+
+                jdrDiagnosticDepartment
+
+                    ? `${jdrDiagnosticDepartment} JD-R 診斷`
+
+                    : '整體組織 JD-R 診斷';
+
+        }
+
+
+        if (
+            reset
+        ) {
+
+            reset.disabled =
+                !jdrDiagnosticDepartment;
+
+        }
+
+
+        const metricValues = {
+
+            'jdr-diagnostic-demand':
+                metrics.demandPct,
+
+            'jdr-diagnostic-resource':
+                metrics.resourcePct,
+
+            'jdr-diagnostic-strain':
+                metrics.strainPct,
+
+            'jdr-diagnostic-motivation':
+                metrics.motivationPct
+
+        };
+
+
+        Object.entries(
+            metricValues
+        )
+        .forEach(
+            (
+                [
+                    id,
+                    value
+                ]
+            ) => {
+
+                const element =
+                    document.getElementById(
+                        id
+                    );
+
+
+                if (
+                    element
+                ) {
+
+                    element.textContent =
+
+                        metrics.total
+
+                            ? `${value.toFixed(0)}%`
+
+                            : '—';
+
+                }
+
+            }
+        );
+
+
+        jdrRenderSignalList(
+
+            'jdr-diagnostic-demands-list',
+
+            jdrTopSignals(
+                selectedData,
+                'job_demands'
+            )
+
+        );
+
+
+        jdrRenderSignalList(
+
+            'jdr-diagnostic-resources-list',
+
+            jdrTopSignals(
+                selectedData,
+                'job_resources'
+            )
+
+        );
+
+
+        const interpretation =
+            document.getElementById(
+                'jdr-diagnostic-interpretation'
+            );
+
+
+        if (
+            !interpretation
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            !metrics.total
+        ) {
+
+            interpretation.textContent =
+                '目前分析條件下沒有可用的 JD-R 回饋。';
+
+            return;
+
+        }
+
+
+        if (
+            !jdrDiagnosticDepartment
+        ) {
+
+            interpretation.textContent =
+
+                `目前整體範圍中，`
+                +
+                `${metrics.demandPct.toFixed(0)}% 的回饋出現 Job Demands 訊號，`
+                +
+                `${metrics.resourcePct.toFixed(0)}% 出現 Job Resources 訊號。`
+                +
+                '請點選 Balance Map 的部門 Bubble，比較該部門相對組織基準的位置與主要要求／資源來源。';
+
+
+            return;
+
+        }
+
+
+        const highDemand =
+
+            metrics.demandPct
+
+            >=
+
+            benchmark.demandPct;
+
+
+        const highResource =
+
+            metrics.resourcePct
+
+            >=
+
+            benchmark.resourcePct;
+
+
+        if (
+            highDemand
+            &&
+            !highResource
+        ) {
+
+            interpretation.textContent =
+                '相較目前分析範圍，這個部門呈現較高的工作要求訊號、較低的工作資源訊號，屬於較值得優先檢視的區域。建議先從高頻 Job Demands 著手，並確認是否可補強主管支持、人力、工具、自主性或其他實際資源。';
+
+        }
+
+        else if (
+            highDemand
+            &&
+            highResource
+        ) {
+
+            interpretation.textContent =
+                '這個部門的工作要求與工作資源訊號都高於目前組織基準。代表高要求可能同時伴隨較多支援；HR 可進一步確認既有資源是否足以抵銷工作負荷，並觀察壓力反應是否仍偏高。';
+
+        }
+
+        else if (
+            !highDemand
+            &&
+            highResource
+        ) {
+
+            interpretation.textContent =
+                '這個部門的工作要求訊號低於目前組織基準，而工作資源訊號較高，整體相對有支撐。可進一步辨識哪些資源最常出現，作為其他部門的管理參考。';
+
+        }
+
+        else {
+
+            interpretation.textContent =
+                '這個部門的工作要求與工作資源訊號都低於目前組織基準。這不等於沒有問題；建議搭配工作情緒、議題與文字內容，確認是否存在低投入、資源不可見或回饋訊號不足等情況。';
+
+        }
+
+    }
+
+
+    function resetJdrDiagnosticDepartment() {
+
+        jdrDiagnosticDepartment =
+            null;
+
+
+        drawJdrEvidenceOverview(
+
+            typeof getJdrScopedData
+            ===
+            'function'
+
+                ? getJdrScopedData(
+                    globalDashboardData
+                )
+
+                : []
+
+        );
+
+    }
+
+
+    function drawJdrEvidenceOverview(
+        data
+    ) {
+
+        const canvas =
+            document.getElementById(
+                'jdrEvidenceChart'
+            );
+
+
+        if (
+            !canvas
+            ||
+            typeof Chart === 'undefined'
+        ) {
+
+            return;
+
+        }
+
+
+        const source =
+
+            Array.isArray(
+                data
+            )
+
+                ? data
+
+                : [];
+
+
+        const groups =
+            new Map();
+
+
+        source.forEach(
+            item => {
+
+                const department =
+                    item.department
+                    ||
+                    '未提供';
+
+
+                if (
+                    !groups.has(
+                        department
+                    )
+                ) {
+
+                    groups.set(
+                        department,
+                        []
+                    );
+
+                }
+
+
+                groups.get(
+                    department
+                )
+                .push(
+                    item
+                );
+
+            }
+        );
+
+
+        const benchmark =
+            jdrCoverageMetrics(
+                source
+            );
+
+
+        const points =
+            Array.from(
+                groups.entries()
+            )
+            .map(
+                (
+                    [
+                        department,
+                        rows
+                    ]
+                ) => {
+
+                    const metrics =
+                        jdrCoverageMetrics(
+                            rows
+                        );
+
+
+                    const highDemand =
+
+                        metrics.demandPct
+
+                        >=
+
+                        benchmark.demandPct;
+
+
+                    const highResource =
+
+                        metrics.resourcePct
+
+                        >=
+
+                        benchmark.resourcePct;
+
+
+                    let color =
+                        '#837791';
+
+
+                    if (
+                        highDemand
+                        &&
+                        !highResource
+                    ) {
+
+                        color =
+                            '#a87575';
+
+                    }
+
+                    else if (
+                        highDemand
+                        &&
+                        highResource
+                    ) {
+
+                        color =
+                            '#b9853f';
+
+                    }
+
+                    else if (
+                        !highDemand
+                        &&
+                        highResource
+                    ) {
+
+                        color =
+                            '#4f836d';
+
+                    }
+
+
+                    return {
+
+                        x:
+                            metrics.resourcePct,
+
+                        y:
+                            metrics.demandPct,
+
+                        r:
+                            7
+                            +
+                            Math.sqrt(
+                                Math.max(
+                                    metrics.total,
+                                    1
+                                )
+                            )
+                            *
+                            2.2,
+
+                        department:
+                            department,
+
+                        total:
+                            metrics.total,
+
+                        demandPct:
+                            metrics.demandPct,
+
+                        resourcePct:
+                            metrics.resourcePct,
+
+                        strainPct:
+                            metrics.strainPct,
+
+                        motivationPct:
+                            metrics.motivationPct,
+
+                        color:
+                            color
+
+                    };
+
+                }
+            );
+
+
+        if (
+            jdrDiagnosticDepartment
+            &&
+            !groups.has(
+                jdrDiagnosticDepartment
+            )
+        ) {
+
+            jdrDiagnosticDepartment =
+                null;
+
+        }
+
+
+        const benchmarkPlugin = {
+
+            id:
+                'jdrBenchmarkLines',
+
+
+            beforeDatasetsDraw(
+                chart
+            ) {
+
+                const {
+                    ctx,
+                    chartArea,
+                    scales
+                } =
+                    chart;
+
+
+                if (
+                    !chartArea
+                    ||
+                    !scales?.x
+                    ||
+                    !scales?.y
+                ) {
+
+                    return;
+
+                }
+
+
+                const x =
+                    scales.x.getPixelForValue(
+
+                        chart.$benchmarkResource
+                        ??
+                        0
+
+                    );
+
+
+                const y =
+                    scales.y.getPixelForValue(
+
+                        chart.$benchmarkDemand
+                        ??
+                        0
+
+                    );
+
+
+                ctx.save();
+
+
+                ctx.strokeStyle =
+                    'rgba(71, 84, 103, 0.28)';
+
+
+                ctx.lineWidth =
+                    1.5;
+
+
+                ctx.setLineDash(
+                    [
+                        5,
+                        5
+                    ]
+                );
+
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    x,
+                    chartArea.top
+                );
+
+                ctx.lineTo(
+                    x,
+                    chartArea.bottom
+                );
+
+                ctx.stroke();
+
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    chartArea.left,
+                    y
+                );
+
+                ctx.lineTo(
+                    chartArea.right,
+                    y
+                );
+
+                ctx.stroke();
+
+
+                ctx.setLineDash(
+                    []
+                );
+
+
+                ctx.fillStyle =
+                    'rgba(71, 84, 103, 0.58)';
+
+
+                ctx.font =
+                    '600 10px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
+
+                ctx.fillText(
+
+                    '組織 Demand 基準',
+
+                    chartArea.left
+                    +
+                    7,
+
+                    Math.max(
+                        chartArea.top
+                        +
+                        12,
+                        y
+                        -
+                        7
+                    )
+
+                );
+
+
+                ctx.save();
+
+
+                ctx.translate(
+
+                    Math.min(
+                        chartArea.right
+                        -
+                        8,
+                        x
+                        +
+                        8
+                    ),
+
+                    chartArea.bottom
+                    -
+                    8
+
+                );
+
+
+                ctx.rotate(
+                    -Math.PI
+                    /
+                    2
+                );
+
+
+                ctx.fillText(
+                    '組織 Resource 基準',
+                    0,
+                    0
+                );
+
+
+                ctx.restore();
+
+                ctx.restore();
+
+            }
+
+        };
+
+
+        const dataset = {
+
+            label:
+                '部門',
+
+            data:
+                points,
+
+
+            /*
+            * 允許位於 0% / 100% 邊界的 Bubble
+            * 完整畫到 chartArea 外的 padding 區。
+            *
+            * 這樣座標仍然維持真正的 0～100%，
+            * 不需要做成 105% 或 110%。
+            */
+            clip:
+                false,
+
+
+            backgroundColor:
+                context =>
+
+                    context.raw?.color
+                    ||
+                    '#6f8293',
+
+
+            borderColor:
+                context =>
+
+                    context.raw?.department
+                    ===
+                    jdrDiagnosticDepartment
+
+                        ? '#18201c'
+
+                        : '#ffffff',
+
+
+            borderWidth:
+                context =>
+
+                    context.raw?.department
+                    ===
+                    jdrDiagnosticDepartment
+
+                        ? 3
+
+                        : 1.5,
+
+
+            hoverBorderWidth:
+                3
+
+        };
+
+        if (
+            theoryJdrEvidenceChartInstance
+        ) {
+
+            theoryJdrEvidenceChartInstance.data.datasets =
+                [
+                    dataset
+                ];
+
+
+            theoryJdrEvidenceChartInstance.$benchmarkDemand =
+                benchmark.demandPct;
+
+
+            theoryJdrEvidenceChartInstance.$benchmarkResource =
+                benchmark.resourcePct;
+
+
+            theoryJdrEvidenceChartInstance.$currentSource =
+                source;
+
+
+            theoryJdrEvidenceChartInstance.update();
+
+
+            renderJdrDiagnostic(
+                source
+            );
+
+
+            return;
+
+        }
+
+
+        theoryJdrEvidenceChartInstance =
+            new Chart(
+                canvas,
+                {
+
+                    type:
+                        'bubble',
+
+
+                    plugins: [
+                        benchmarkPlugin
+                    ],
+
+
+                    data: {
+
+                        datasets: [
+                            dataset
+                        ]
+
+                    },
+
+
+                    options: {
+
+                        responsive:
+                            true,
+
+                        maintainAspectRatio:
+                            false,
+
+
+                        animation: {
+
+                            duration:
+                                450,
+
+                            easing:
+                                'easeOutCubic'
+
+                        },
+
+
+                        layout: {
+
+                            padding: {
+
+                                top:
+                                    36,
+
+                                right:
+                                    38,
+
+                                bottom:
+                                    14,
+
+                                left:
+                                    18                                    
+
+                            }
+
+                        },
+
+
+                        plugins: {
+
+                            legend: {
+
+                                display:
+                                    false
+
+                            },
+
+
+                            datalabels: {
+
+                                display:
+                                    true,
+
+                                anchor:
+                                    'end',
+
+                                align:
+                                    'top',
+
+                                offset:
+                                    3,
+
+                                color:
+                                    '#475467',
+
+                                font: {
+
+                                    size:
+                                        10,
+
+                                    weight:
+                                        '700'
+
+                                },
+
+                                formatter:
+                                    value =>
+                                        value.department
+
+                            },
+
+
+                            tooltip: {
+
+                                callbacks: {
+
+                                    title:
+                                        items =>
+
+                                            items.length
+
+                                                ? items[0].raw.department
+
+                                                : '',
+
+
+                                    label:
+                                        context => {
+
+                                            const point =
+                                                context.raw;
+
+
+                                            return [
+
+                                                `回饋：${point.total} 筆`,
+
+                                                `Job Demands：${point.demandPct.toFixed(0)}%`,
+
+                                                `Job Resources：${point.resourcePct.toFixed(0)}%`,
+
+                                                `壓力反應：${point.strainPct.toFixed(0)}%`,
+
+                                                `正向動機：${point.motivationPct.toFixed(0)}%`
+
+                                            ];
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+
+                        scales: {
+
+                            x: {
+
+                                min:
+                                    0,
+
+                                max:
+                                    100,
+
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        'Job Resources 訊號涵蓋率',
+
+                                    padding: {
+
+                                        top:
+                                            10
+
+                                    }
+
+                                },
+
+
+                                ticks: {
+
+                                    stepSize:
+                                        10,
+
+                                    padding:
+                                        6,
+
+                                    callback:
+                                        value =>
+                                            `${value}%`
+
+                                },
+
+
+                                grid: {
+
+                                    color:
+                                        'rgba(16, 24, 40, 0.06)'
+
+                                },
+
+
+                                border: {
+
+                                    color:
+                                        'rgba(16, 24, 40, 0.12)'
+
+                                }
+
+                            },
+
+
+                            y: {
+
+                                min:
+                                    0,
+
+                                max:
+                                    100,
+
+
+                                title: {
+
+                                    display:
+                                        true,
+
+                                    text:
+                                        'Job Demands 訊號涵蓋率',
+
+                                    padding: {
+
+                                        bottom:
+                                            10
+
+                                    }
+
+                                },
+
+
+                                ticks: {
+
+                                    stepSize:
+                                        10,
+
+                                    padding:
+                                        6,
+
+                                    callback:
+                                        value =>
+                                            `${value}%`
+
+                                },
+
+
+                                grid: {
+
+                                    color:
+                                        'rgba(16, 24, 40, 0.06)'
+
+                                },
+
+
+                                border: {
+
+                                    color:
+                                        'rgba(16, 24, 40, 0.12)'
+
+                                }
+
+                            }
+
+                        },
+
+                        onHover:
+                            (
+                                event,
+                                elements
+                            ) => {
+
+                                const target =
+                                    event
+                                        ?.native
+                                        ?.target;
+
+
+                                if (
+                                    target
+                                ) {
+
+                                    target.style.cursor =
+
+                                        elements.length
+
+                                            ? 'pointer'
+
+                                            : 'default';
+
+                                }
+
+                            },
+
+
+                        onClick:
+                            (
+                                event,
+                                elements,
+                                chart
+                            ) => {
+
+                                if (
+                                    !elements.length
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                const point =
+
+                                    chart
+                                        .data
+                                        .datasets[
+                                            elements[0].datasetIndex
+                                        ]
+                                        .data[
+                                            elements[0].index
+                                        ];
+
+
+                                if (
+                                    !point?.department
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                jdrDiagnosticDepartment =
+                                    point.department;
+
+
+                                drawJdrEvidenceOverview(
+
+                                    chart.$currentSource
+                                    ||
+                                    []
+
+                                );
+
+                            }
+
+                    }
+
+                }
+            );
+
+
+        theoryJdrEvidenceChartInstance.$benchmarkDemand =
+            benchmark.demandPct;
+
+
+        theoryJdrEvidenceChartInstance.$benchmarkResource =
+            benchmark.resourcePct;
+
+
+        theoryJdrEvidenceChartInstance.$currentSource =
+            source;
+
+
+        renderJdrDiagnostic(
+            source
+        );
+
+    }
+
+
+    // =========================================================
+    // When dashboard opens
+    // =========================================================
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        () => {
+
+            const dashboardNav =
+
+                document.getElementById(
+                    'nav-dashboard'
+                );
+
+
+            if (
+                dashboardNav
+            ) {
+
+                dashboardNav.addEventListener(
+                    'click',
+                    () => {
+
+                        setTimeout(
+                            () => {
+
+                                [
+
+                                    theoryRussellChartInstance,
+
+                                    theoryWarrChartInstance,
+
+                                    theoryJdrProcessChartInstance,
+
+                                    theoryJdrEvidenceChartInstance
+
+                                ].forEach(
+                                    chart => {
+
+                                        if (
+                                            chart
+                                        ) {
+
+                                            chart.resize();
+
+                                        }
+
+                                    }
+                                );
+
+                            },
+                            100
+                        );
+
+                    }
+                );
+
+            }
+
+        }
+    );
+
+</script>
