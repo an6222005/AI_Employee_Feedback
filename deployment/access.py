@@ -10,8 +10,8 @@ def protect_cloud_site(app):
         return
     username = os.environ.get("SITE_USERNAME", "")
     password = os.environ.get("SITE_PASSWORD", "")
-    if not username or len(password) < 20:
-        raise RuntimeError("Cloud demo requires a username and a strong site password.")
+    if not username or len(password) < 4:
+        raise RuntimeError("Cloud demo requires a username and a site password of at least four characters.")
 
     @app.before_request
     def authenticate():
