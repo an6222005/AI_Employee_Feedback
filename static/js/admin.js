@@ -1710,7 +1710,7 @@ function renderTable(
     data
 ) {
 
-    const table =
+    let table =
         document.getElementById(
             'feedbackTable'
         );
@@ -1733,6 +1733,12 @@ function renderTable(
 
         dataTableInstance =
             null;
+
+        // Destroy restores a replacement table. Refresh the reference before
+        // changing headers, so batch mode and row actions stay aligned.
+        table = document.getElementById('feedbackTable');
+
+        if (!table) return;
 
     }
 
@@ -1786,15 +1792,15 @@ function renderTable(
 
     theadHTML += `
 
-        <th>
+        <th class="feedback-meta-column">
             回饋日期與分類
         </th>
 
-        <th>
+        <th class="feedback-content-column">
             回饋內容
         </th>
 
-        <th>
+        <th class="feedback-summary-column">
             分析摘要
         </th>
 
@@ -1807,7 +1813,7 @@ function renderTable(
 
         theadHTML += `
 
-            <th>
+            <th class="feedback-actions-column">
                 操作
             </th>
 
@@ -2225,7 +2231,7 @@ function renderTable(
 
                 html += `
 
-                    <td class="align-middle">
+                    <td class="align-middle feedback-actions-column">
 
                         <button
                             type="button"

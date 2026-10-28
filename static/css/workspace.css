@@ -158,6 +158,20 @@ body.admin-app { background: var(--canvas); color: var(--text-primary); font-fam
 .admin-app #section-table .feedback-table-card-header { background: #fff !important; }
 .admin-app #section-table #feedbackTable thead th { background: #f4f7fa !important; color: #61768d !important; font-weight: 500; }
 .admin-app #section-table #feedbackTable tbody tr:hover td { background: #f4f8fc !important; }
+.admin-app #section-table #feedbackTable { min-width: 760px; }
+.admin-app #section-table #feedbackTable th.feedback-meta-column { width: 142px !important; }
+.admin-app #section-table #feedbackTable th.feedback-content-column { width: 32% !important; }
+.admin-app #section-table #feedbackTable th.feedback-summary-column { width: auto !important; }
+.admin-app #section-table #feedbackTable th.feedback-actions-column { width: 144px !important; }
+/* Keep row actions reachable even when the table needs horizontal scrolling. */
+.admin-app #section-table #feedbackTable .feedback-actions-column {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background: #fff;
+    box-shadow: -1px 0 0 var(--line), -8px 0 12px -12px rgba(24, 54, 82, .35);
+}
+.admin-app #section-table #feedbackTable thead .feedback-actions-column { z-index: 3; }
 .workspace-footnote { display: flex; justify-content: space-between; gap: 12px; padding: 24px 0; margin-top: 30px; border-top: 1px solid var(--line); color: #8b98a6; font-size: 9px; }
 @media (min-width: 1600px) { .workspace-content { padding: 38px 44px 0; } .workspace-bar { padding-inline: 44px; } }
 @media (max-width: 1199px) {
