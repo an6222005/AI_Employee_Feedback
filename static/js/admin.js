@@ -165,7 +165,7 @@ function switchTab(
 
         dashboard: {
             title:
-                '員工體驗概覽',
+                '員工總覽與分析',
 
             description:
                 '將團隊的聲音，轉化為更清晰的管理視角。'
