@@ -1707,6 +1707,7 @@
         }
 
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/employee.css') }}">
 
 </head>
 
@@ -2235,12 +2236,13 @@
                              System reply
                              ================================================= -->
 
+                        <dialog id="replyDialog" class="reply-dialog" aria-labelledby="reply-heading">
                         <div
                             id="replyBox"
                             class="reply-box"
                         >
 
-                            <div class="reply-heading">
+                            <div id="reply-heading" class="reply-heading">
 
                                 <i class="bi bi-chat-left-text"></i>
 
@@ -2255,6 +2257,10 @@
                             ></p>
 
                         </div>
+                        <form method="dialog" class="reply-dialog-footer">
+                            <button class="reply-close-button" autofocus>關閉回覆</button>
+                        </form>
+                        </dialog>
 
                     </div>
 
@@ -3122,19 +3128,8 @@
 
 
 
-                    /*
-                       Scroll reply into view.
-                    */
-
-                    replyBox.scrollIntoView(
-                        {
-                            behavior:
-                                'smooth',
-
-                            block:
-                                'nearest'
-                        }
-                    );
+                    // Keep the entry page in place while showing the full reply.
+                    document.getElementById('replyDialog').showModal();
 
 
                 } catch (error) {
